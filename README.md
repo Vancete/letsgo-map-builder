@@ -4,6 +4,12 @@ Editor de mapas para **Pokémon: Let's Go, Pikachu! / Eevee!**, pensado para cre
 [Let's Go Recomp](../letsgo-recomp). Los modelos salen de tu propia copia del juego; el editor no incluye ningún archivo
 del juego.
 
+> [!WARNING]
+> **Work in progress, en una fase muy temprana.** Los mapas todavía no se pueden cargar en el juego (ver "Pendiente"),
+> y el formato de archivo y la interfaz pueden cambiar sin aviso.
+
+![El editor: escena a la izquierda, vista 3D en el centro, inspector a la derecha y catálogo de objetos abajo](editor.png)
+
 ## Uso
 
 ```bash
