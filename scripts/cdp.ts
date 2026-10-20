@@ -48,3 +48,4 @@ else if (cmd === 'click' || cmd === 'drag') {
   console.log('ok');
 }
 ws.close();
+export {};
