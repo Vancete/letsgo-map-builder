@@ -164,7 +164,7 @@ export function defaultTerrain(): TerrainBlock {
 }
 
 export function defaultStairs(): StairsBlock {
-  return { w: 1, length: 2, height: 50, texture: 'roadstone01_com' };
+  return { w: 1, length: 2, height: 50, texture: 'stairs01_03_area04' };
 }
 
 // the cells a rectangle centered at (x, z) covers (measured from the grid's origin): as grass zones

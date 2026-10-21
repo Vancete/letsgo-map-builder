@@ -754,7 +754,7 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
     writeFileSync(join(modelsDir, 'lg.terrain.lgm'), deflateSync(encodeLgm(block)));
     const steps: LgmModel = {
       bounds: [-50, 0, -100, 50, 50, 100],
-      materials: [flat('steps', has('roadstone01_com') ? 'roadstone01_com' : null, [0.7, 0.7, 0.65])],
+      materials: [flat('steps', has('stairs01_03_area04') ? 'stairs01_03_area04' : null, [0.7, 0.7, 0.65])],
       meshes: [0, 1, 2, 3].flatMap((i) => [boxMesh(0, -50, 0, 100 - (i + 1) * 50, 50, 12.5 * (i + 1), 100 - i * 50, 'top'), boxMesh(0, -50, 12.5 * i, 100 - (i + 1) * 50, 50, 12.5 * (i + 1), 100 - i * 50, 'sides')]),
     };
     writeFileSync(join(modelsDir, 'lg.stairs.lgm'), deflateSync(encodeLgm(steps)));
