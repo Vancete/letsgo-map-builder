@@ -5,8 +5,9 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { inflateSync } from 'node:zlib';
 import createExtractWorker from './extract-worker?nodeWorker';
+import createBuildWorker from './build-worker?nodeWorker';
 import { CATALOG_VERSION, type AppSettings, type Catalog, type MapDocument } from '../shared/types.ts';
-import { addRecent, detectGamePaths, exportMod, guessModsPath, loadSettings, readMap, saveSettings, validGamePath, writeMap } from './files.ts';
+import { addRecent, detectGamePaths, guessModsPath, loadSettings, readMap, saveSettings, validGamePath, writeMap } from './files.ts';
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'lgcache', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } },
@@ -156,19 +157,31 @@ function registerIpc() {
     setSettings(addRecent(settings, target));
     return target;
   });
-  ipcMain.handle('mod:export', async (_e, doc: MapDocument) => {
-    let dir = settings.modsPath || guessModsPath(settings.gamePath);
+  ipcMain.handle('mod:pickDir', async () => {
     const r = await dialog.showOpenDialog(win!, {
-      title: 'Carpeta mods/ de Let\'s Go Recomp',
-      defaultPath: dir || undefined,
+      title: "Carpeta mods/ de Let's Go Recomp",
+      defaultPath: settings.modsPath || guessModsPath(settings.gamePath) || undefined,
       properties: ['openDirectory', 'createDirectory'],
     });
     if (r.canceled || !r.filePaths[0]) return null;
-    dir = r.filePaths[0];
-    setSettings({ modsPath: dir });
-    return exportMod(dir, doc, app.getVersion());
+    setSettings({ modsPath: r.filePaths[0] });
+    return r.filePaths[0];
   });
-
+  ipcMain.handle('mod:defaultDir', () => settings.modsPath || guessModsPath(settings.gamePath) || '');
+  ipcMain.handle('mod:export', (_e, doc: MapDocument, slot: string, modsDir: string) => {
+    if (!validGamePath(settings.gamePath)) return Promise.reject(new Error('Carpeta del juego no válida'));
+    mkdirSync(modsDir, { recursive: true });
+    setSettings({ modsPath: modsDir });
+    return new Promise((resolve, reject) => {
+      const w = createBuildWorker({ workerData: { gamePath: settings.gamePath, cacheDir, modsDir, doc, slot, version: app.getVersion() } });
+      w.on('message', (m: { type: string; message?: string }) => {
+        if (m.type === 'log') win?.webContents.send('mod:log', m.message);
+        else if (m.type === 'done') resolve(m);
+        else if (m.type === 'error') reject(new Error(m.message));
+      });
+      w.on('error', reject);
+    });
+  });
   ipcMain.handle('shell:open', (_e, p: string) => shell.openPath(p));
   ipcMain.handle('app:close', () => {
     if (win) {

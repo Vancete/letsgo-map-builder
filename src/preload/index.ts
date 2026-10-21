@@ -1,6 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { AppSettings, Catalog, ExtractProgress, MapDocument } from '../shared/types';
 
+export interface ExportResult {
+  dir: string;
+  warnings: string[];
+  stats: { objects: number; meshes: number; materials: number; textures: number; triangles: number };
+}
+
 const api = {
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('settings:get'),
   setSettings: (patch: Partial<AppSettings>): Promise<AppSettings> => ipcRenderer.invoke('settings:set', patch),
@@ -23,7 +29,9 @@ const api = {
   openMap: (): Promise<{ path: string; doc: MapDocument } | null> => ipcRenderer.invoke('map:open'),
   openMapPath: (path: string): Promise<{ path: string; doc: MapDocument }> => ipcRenderer.invoke('map:openPath', path),
   saveMap: (path: string | null, doc: MapDocument): Promise<string | null> => ipcRenderer.invoke('map:save', path, doc),
-  exportMod: (doc: MapDocument): Promise<string | null> => ipcRenderer.invoke('mod:export', doc),
+  pickModsDir: (): Promise<string | null> => ipcRenderer.invoke('mod:pickDir'),
+  defaultModsDir: (): Promise<string> => ipcRenderer.invoke('mod:defaultDir'),
+  exportMod: (doc: MapDocument, slot: string, modsDir: string): Promise<ExportResult> => ipcRenderer.invoke('mod:export', doc, slot, modsDir),
   openPath: (p: string): Promise<string> => ipcRenderer.invoke('shell:open', p),
   setTitle: (t: string): Promise<void> => ipcRenderer.invoke('app:title', t),
   closeApp: (): Promise<void> => ipcRenderer.invoke('app:close'),

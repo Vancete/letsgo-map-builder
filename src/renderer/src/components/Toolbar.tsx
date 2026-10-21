@@ -20,7 +20,7 @@ export function Toolbar() {
       <button onClick={() => openMap()} title="Abrir mapa (Ctrl+O)">📂 Abrir</button>
       <button onClick={() => saveMap(false)} title="Guardar (Ctrl+S)">💾 Guardar</button>
       <button onClick={() => saveMap(true)} title="Guardar como (Ctrl+Shift+S)">Guardar como</button>
-      <button onClick={exportMod} title="Exportar como mod para Let's Go Recomp">📦 Exportar mod</button>
+      <button onClick={exportMod} title="Crear un mod de Let's Go Recomp con el mapa, al que se llega con un teletransportador desde Pueblo Paleta">🎮 Exportar al juego</button>
       <div className="sep" />
       <button onClick={() => e().undo()} disabled={!canUndo} title="Deshacer (Ctrl+Z)">↶</button>
       <button onClick={() => e().redo()} disabled={!canRedo} title="Rehacer (Ctrl+Y)">↷</button>

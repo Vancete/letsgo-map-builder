@@ -18,6 +18,7 @@ interface UiState {
   thumbJob: { done: number; total: number } | null;
   toast: { text: string; error?: boolean; id: number } | null;
   confirm: ConfirmReq | null;
+  exportOpen: boolean;
   setPhase(p: Phase): void;
   setBuild(p: ExtractProgress | null, error?: string | null): void;
   setThumbJob(j: { done: number; total: number } | null): void;
@@ -33,6 +34,7 @@ export const useUi = create<UiState>((set, get) => ({
   thumbJob: null,
   toast: null,
   confirm: null,
+  exportOpen: false,
   setPhase: (phase) => set({ phase }),
   setBuild: (buildProgress, buildError = null) => set({ buildProgress, buildError }),
   setThumbJob: (thumbJob) => set({ thumbJob }),

@@ -7,7 +7,7 @@
 //    components that touch are clustered into instances, and the distinct instances become assets moved to the origin.
 //  - Each zone model whole, to build on an existing map.
 //  - Ground tiles: one cell textured with each ground texture the zones use.
-import { mkdirSync, writeFileSync, existsSync, readdirSync, statSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readdirSync, readFileSync, statSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { openGameFS, type GameFS } from './formats/gamefs.ts';
 import { Gfpak, fnv1a64 } from './formats/gfpak.ts';
@@ -106,9 +106,32 @@ function toLgmMaterial(m: GfMaterial): LgmMaterial {
 interface Tri {
   mesh: number;
   poly: number;
+  k: number; // triangle number in the polygon's index list
   a: number;
   b: number;
   c: number;
+}
+
+// Which triangles of the source model make a piece: u32 count, then u16 mesh, u16 polygon, u32 triangle (the map
+// exporter rebuilds the piece from the game's own vertex data).
+function encodeSelection(tris: Tri[]): Uint8Array {
+  const out = new Uint8Array(4 + tris.length * 8);
+  const dv = new DataView(out.buffer);
+  dv.setUint32(0, tris.length, true);
+  tris.forEach((t, i) => {
+    dv.setUint16(4 + i * 8, t.mesh, true);
+    dv.setUint16(6 + i * 8, t.poly, true);
+    dv.setUint32(8 + i * 8, t.k, true);
+  });
+  return out;
+}
+
+export function decodeSelection(u8: Uint8Array): { mesh: number; poly: number; k: number }[] {
+  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  const n = dv.getUint32(0, true);
+  const out: { mesh: number; poly: number; k: number }[] = [];
+  for (let i = 0; i < n; i++) out.push({ mesh: dv.getUint16(4 + i * 8, true), poly: dv.getUint16(6 + i * 8, true), k: dv.getUint32(8 + i * 8, true) });
+  return out;
 }
 
 class UnionFind {
@@ -227,7 +250,7 @@ function allTris(model: GfModel, meshIdx: number[]): Tri[] {
   const out: Tri[] = [];
   for (const mi of meshIdx)
     model.meshes[mi].polygons.forEach((p, pi) => {
-      for (let k = 0; k + 2 < p.indices.length; k += 3) out.push({ mesh: mi, poly: pi, a: p.indices[k], b: p.indices[k + 1], c: p.indices[k + 2] });
+      for (let k = 0; k + 2 < p.indices.length; k += 3) out.push({ mesh: mi, poly: pi, k: k / 3, a: p.indices[k], b: p.indices[k + 1], c: p.indices[k + 2] });
     });
   return out;
 }
@@ -255,7 +278,7 @@ function instances(model: GfModel, meshIdx: number[], margin: number): { tris: T
         const r = uf.find(a);
         let comp = byRoot.get(r);
         if (!comp) byRoot.set(r, (comp = { tris: [], box: emptyBox() }));
-        comp.tris.push({ mesh: mi, poly: pi, a, b, c });
+        comp.tris.push({ mesh: mi, poly: pi, k: k / 3, a, b, c });
         for (const v of [a, b, c]) grow(comp.box, mesh.position[v * 3], mesh.position[v * 3 + 1], mesh.position[v * 3 + 2]);
       }
     });
@@ -522,7 +545,9 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
       bakeBones(model);
       // fake shadow casters: invisible in the game's color pass
       for (const mesh of model.meshes)
-        mesh.polygons = mesh.polygons.filter((p) => !/ShadowOnly/i.test(model.materials[p.material]?.shader ?? ''));
+        mesh.polygons = mesh.polygons.map((p) =>
+          /ShadowOnly/i.test(model.materials[p.material]?.shader ?? '') ? { ...p, indices: new Uint16Array(0) } : p,
+        ); // (emptied, not removed: polygon numbers stay the model's)
       const rootName = model.bones[0]?.name || `model${index}`;
       const allMeshes = model.meshes.map((_, i) => i);
       if (isObjects) {
@@ -619,6 +644,7 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
           const pivot: [number, number, number] = [(c.box[0] + c.box[3]) / 2, c.box[1], (c.box[2] + c.box[5]) / 2];
           const lgm = buildLgm(model, c.tris, pivot, [], new Map());
           if (!lgm.meshes.length) continue;
+          writeFileSync(join(modelsDir, safeId(`zp.${zoneKey}.${family}.${kept}`) + '.sel'), encodeSelection(c.tris));
           save(
             {
               id: safeId(`zp.${zoneKey}.${family}.${kept}`),
@@ -669,6 +695,32 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
         bounds: lgm.bounds,
         triangles: 2,
       });
+    }
+  }
+
+  // the map's markers: where the player arrives (an arrow) and the teleporter back (the game's warp tile)
+  {
+    const arrow: LgmModel = {
+      bounds: [-40, 0, -50, 40, 2, 60],
+      materials: [{ name: 'spawn', map: null, map2: null, uvSet: 0, uvScale: [1, 1], alphaTest: 0, blend: false, doubleSided: true, color: [0.2, 0.75, 1], vertexColor: false }],
+      meshes: [
+        {
+          material: 0,
+          position: new Float32Array([-40, 2, -50, 40, 2, -50, 0, 2, 60, -15, 2, -50, 15, 2, -50, -15, 2, -50]),
+          normal: new Int8Array([0, 127, 0, 0, 127, 0, 0, 127, 0, 0, 127, 0, 0, 127, 0, 0, 127, 0]),
+          uv0: null,
+          uv1: null,
+          color: null,
+          index: new Uint16Array([0, 2, 1]),
+        },
+      ],
+    };
+    writeFileSync(join(modelsDir, 'lg.spawn.lgm'), deflateSync(encodeLgm(arrow)));
+    assets.unshift({ id: 'lg.spawn', name: 'Punto de llegada', category: 'marker', zone: null, source: { kind: 'marker', marker: 'spawn' }, bounds: arrow.bounds, triangles: 1 });
+    const pad = assets.find((a) => a.id === 'bm.warp01');
+    if (pad && existsSync(join(modelsDir, 'bm.warp01.lgm'))) {
+      writeFileSync(join(modelsDir, 'lg.exit.lgm'), readFileSync(join(modelsDir, 'bm.warp01.lgm')));
+      assets.unshift({ id: 'lg.exit', name: 'Salida (teletransportador)', category: 'marker', zone: null, source: { kind: 'marker', marker: 'exit' }, bounds: pad.bounds, triangles: pad.triangles });
     }
   }
 

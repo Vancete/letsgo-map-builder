@@ -5,10 +5,17 @@ Editor de mapas para **Pokémon: Let's Go, Pikachu! / Eevee!**, pensado para cre
 del juego.
 
 > [!WARNING]
-> **Work in progress, en una fase muy temprana.** Los mapas todavía no se pueden cargar en el juego (ver "Pendiente"),
-> y el formato de archivo y la interfaz pueden cambiar sin aviso.
+> **Work in progress, en una fase muy temprana.** Los mapas ya se pueden jugar dentro de Let's Go Recomp (ver
+> [Jugar el mapa en el juego](#jugar-el-mapa-en-el-juego)), con limitaciones; el formato de archivo y la interfaz pueden
+> cambiar sin aviso.
 
 ![El editor: escena a la izquierda, vista 3D en el centro, inspector a la derecha y catálogo de objetos abajo](editor.png)
+
+Un mapa hecho en el editor ([`examples/pueblo-prueba.lgmap`](examples/pueblo-prueba.lgmap)) y el mismo mapa dentro del
+juego:
+
+![El mapa de ejemplo en el editor](docs/editor-map.png)
+![El mapa de ejemplo dentro del juego](docs/ingame.png)
 
 ## Uso
 
@@ -34,7 +41,9 @@ npm start          # ejecuta lo compilado
    - **Centro**, la vista 3D con gizmo de mover / rotar / escalar (W / E / R) y ajuste a la rejilla.
    - **Derecha**, el inspector: posición, rotación y escala numéricas (admite operaciones: `350+100`), la casilla de la
      rejilla en la que está el objeto y las propiedades del mapa.
-4. **Guardar** crea un `.lgmap`; **📦 Exportar mod** lo empaqueta como mod en la carpeta `mods/` de Let's Go Recomp.
+4. Coloca los marcadores de la categoría **Llegada y salida**: el *Punto de llegada* (la flecha: dónde aparece el
+   jugador) y la *Salida* (la baldosa de teletransporte que devuelve a Pueblo Paleta). Son opcionales.
+5. **Guardar** crea un `.lgmap`; **🎮 Exportar al juego** crea el mod (ver abajo).
 
 ### Controles
 
@@ -97,30 +106,84 @@ JSON, unidades del juego (Y hacia arriba, 1 casilla = 100), rotaciones en grados
 
 `source.kind`: `model` (un modelo entero de un `.gfpak`, con su ruta RomFS si se conoce), `zonePiece` (una instancia de
 un grupo de un modelo de zona, con el punto de su base en coordenadas de la zona), `zone` (zona completa) o `tile`
-(baldosa generada con una textura del juego). Los objetos con `asset: null` son grupos; la posición de un hijo es
+(baldosa generada con una textura del juego) o `marker` (llegada y salida). Los objetos con `asset: null` son grupos; la posición de un hijo es
 relativa a su padre.
 
-### Mod exportado
+## Jugar el mapa en el juego
 
-```
-mods/<Nombre>/
-  mapmod.json                          nombre, autor, ruta del mapa
-  README.txt
-  romfs/bin/lgmap/<Nombre>.lgmap       el mapa
-```
+1. En el editor, **🎮 Exportar al juego**: elige la carpeta `mods/` de tu instalación de Let's Go Recomp (se propone sola)
+   y uno de los cuatro huecos de mapa. Se crea `mods/<Nombre del mapa>/`.
+2. En el lanzador de Let's Go Recomp, pestaña **Mods**, activa el mod (y desactiva otros mods de mapas o que cambien
+   `placement.gfpak` / `script_amx.gfpak`).
+3. Juega y ve a **Pueblo Paleta**: en el camino entre las casas del norte hay un teletransportador nuevo (la baldosa del
+   gimnasio de Ciudad Azafrán). Písalo para entrar en tu mapa; la baldosa de salida del mapa te devuelve a Paleta.
 
-El mod tiene `romfs/`, así que Let's Go Recomp lo lista y lo monta por LayeredFS. El mapa va en una ruta de la RomFS que
-el juego original no lee (`bin/lgmap/`): **cargarlo dentro del juego necesita un cargador en el runtime de Let's Go
-Recomp**, que todavía no existe (ver "Pendiente").
+![El teletransportador de Pueblo Paleta](docs/teleporter.png)
+
+### Cómo funciona
+
+El juego no tiene un formato de mapa abierto: el mod **sustituye uno de sus mapas sin usar** por el tuyo, con los mismos
+tipos de archivo que usan sus mapas. Los huecos son las cuatro salas de pruebas de personajes (`test_chr01`…`04`): el
+juego las tiene registradas (con su modelo, colisiones, terreno y placement) pero ningún camino lleva a ellas.
+
+| Archivo del mod (`romfs/…`) | Qué es |
+|---|---|
+| `bin/field/model/<hueco>/<hueco>.gfbmdl` | el modelo del mapa: los triángulos de cada objeto, tomados de los datos de vértice originales del juego (no de la caché del editor) y movidos a su sitio; todo en un modelo, con los materiales originales |
+| `bin/archive/field/<hueco>.gfpak` | los recursos del hueco más los shaders (`<material>.bnsh_vsh/.bnsh_fsh`) y texturas (`<textura>.bntx`) de cada material, copiados de las paks de donde vienen las piezas |
+| `bin/field/model/<hueco>/<hueco>_floor/_wall/_zone.gfbcol` | colisiones: el suelo, paredes alrededor de la rejilla y cajas alrededor de los objetos sólidos (edificios, árboles, rocas, vallas, mobiliario), y la forma de la zona |
+| `bin/field/param/terrain/<hueco>/terrain_data.bin` | el bloque de terreno del hueco, con el tamaño del mapa |
+| `bin/archive/field/placement.gfpak` | el placement del hueco sin los personajes de prueba y con la baldosa de vuelta; el de `area02` con el teletransportador en Pueblo Paleta |
+| `bin/archive/script_amx.gfpak` | los scripts que toda zona necesita (`<zona>.amx`, `init_<zona>.amx`); las salas de prueba no los tienen y sin ellos el juego se cuelga al entrar |
+| `bin/lgmap/<nombre>.lgmap` | el mapa del editor (el juego no lo lee; sirve para volver a abrirlo) |
+
+El suelo del hueco (una pradera de 40 × 40 casillas) se queda debajo del mapa: la rejilla del editor empieza en su
+esquina, así que el mapa debería caber en 40 × 40 casillas.
+
+Sin la interfaz: `node scripts/build-map-mod.ts <mapa.lgmap> <caché del catálogo> <carpeta del juego> <carpeta mods> [nombre]`.
+
+### Lo que hubo que averiguar
+
+Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
+
+- **Placement** (`bin/archive/field/placement.gfpak`, un FlatBuffer por mapa en `bin/field/param/placement/<mapa>.bin`;
+  los nombres se recuperan probando rutas contra los hashes FNV-1a 64): la raíz es el mapa (campo 1 = hash del nombre),
+  con un vector de zonas; cada zona tiene su información (campo 1 = hash del nombre de zona, p. ej. `town001` = Pueblo
+  Paleta) y unas 28 listas de objetos. Lista 2: objetos con modelo (`warp01.gfbmdl`…). Lista 4: **warps** (posición del
+  disparador, mapa destino *por nombre*, hash de la zona destino, posición y rotación de llegada, caja del disparador,
+  y en las puertas el modelo y la animación de la puerta). Lista 25: baldosas de teletransporte del gimnasio de Azafrán
+  (solo dentro del mismo mapa). Un warp se activa al entrar en su caja **caminando en la dirección de la caja**, así
+  que el teletransportador lleva cuatro, una por dirección.
+- **Editar FlatBuffers sin esquema**: los offsets solo apuntan hacia delante, así que lo que cambia se escribe de nuevo al
+  final del archivo y se re-enlaza (`src/shared/formats/fbedit.ts`). Para copiar tablas sin saber qué campos son
+  offsets, el editor **aprende el esquema** de cientos de instancias (un campo es offset si en todas apunta a un string,
+  una tabla o un vector de ellas).
+- **Mapas de prueba**: `test_chr01` se colgaba al entrar; enganchando `nn::fs::OpenFile` (`LARECOMP_HOOK_DUMP` del
+  runtime) se vio que pedía `bin/script/amx/test_chr01.amx` y luego `init_test_chr01.amx`, que no existen. El script
+  vacío que comparten muchas zonas sirve para los dos.
+- **`terrain_data.bin`** lista los bloques de terreno de cada mapa: caja, modelo, animación, colisión de pared y de suelo.
+- **Materiales**: los campos 8 y 10 de un material son su número dentro del modelo (su shader en la lista de shaders);
+  al fusionar materiales de varios modelos hay que reescribirlos o el juego lee fuera de la lista.
+- Las pruebas se hicieron con las partidas guionizadas de Let's Go Recomp (`tools/scenario_shot.sh`, `mod = <nombre>` en
+  el ini), que llevan una copia de la partida a Pueblo Paleta y hacen capturas.
+
+### Limitaciones
+
+- Solo se llega desde Pueblo Paleta (posición fija del teletransportador) y solo un mod de mapa activo a la vez: el mod
+  reemplaza `placement.gfpak` y `script_amx.gfpak` enteros.
+- Las baldosas de suelo generadas por el editor no se exportan (no tienen material del juego); los suelos recortados de
+  las zonas del juego sí.
+- Colisiones simplificadas: suelo plano a altura 0 y cajas; no hay desniveles transitables ni saltos.
+- Las zonas completas y los objetos animados (puertas) se exportan como geometría fija; la hierba alta no tiene
+  encuentros.
+- Las puertas de los edificios no llevan a ningún sitio.
 
 ## Pendiente
 
-- Cargador en el runtime de Let's Go Recomp: leer `bin/lgmap/*.lgmap` de los mods activos y construir la zona.
-  Dos caminos posibles: (a) generar en la exportación los archivos que el juego ya entiende (un GFBMDL de zona con las
-  piezas fusionadas, su colisión `.gfbcol` y su entrada en `placement.gfpak`), o (b) un hook en el runtime que dibuje y
-  colisione los objetos del mapa.
-- Los materiales se aproximan con iluminación Lambert; los shaders de terreno que mezclan varias texturas usan solo la
-  principal.
+- Elegir en el editor el mapa y el sitio del teletransportador de entrada.
+- Exportar las baldosas de suelo (con el material de suelo del juego) y colisiones de suelo con alturas.
+- Encuentros en la hierba alta, NPCs y objetos del juego (listas de placement).
+- Los materiales del visor se aproximan con iluminación Lambert; los shaders de terreno que mezclan varias texturas
+  usan solo la principal.
 
 ## Estructura
 
@@ -128,9 +191,12 @@ Recomp**, que todavía no existe (ver "Pendiente").
 src/shared/formats/   lectores de formatos del juego (gfpak, lz4, flatbuf, gfbmdl, bntx, bcn, gamefs, png)
 src/shared/extract.ts construcción del catálogo (modelos LGM + texturas PNG en la caché)
 src/shared/lgm.ts     formato de modelo de la caché
+src/shared/placement.ts  placement del juego: warps, teletransportadores, listas de objetos
+src/shared/mapbuild.ts   exportación al juego (modelo fusionado, pak, colisiones, terreno, placement, scripts)
 src/main/             proceso principal de Electron (ajustes, catálogo en un worker, archivos, mods)
 src/renderer/         interfaz (React + three.js): store con deshacer, vista 3D, miniaturas, paneles
-scripts/              utilidades de desarrollo (extract-cli, pakinfo, fbdump, cdp para pruebas automáticas)
+scripts/              utilidades de desarrollo: extract-cli, build-map-mod (exportar un .lgmap sin la interfaz),
+                      pakinfo, pakhash, fbdump, schema, warps, debugtable, texdump, cdp (pruebas automáticas)
 ```
 
 La caché vive en `%APPDATA%/letsgo-map-builder/library`.

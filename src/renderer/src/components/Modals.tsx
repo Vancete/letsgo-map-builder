@@ -1,4 +1,5 @@
 import { useUi } from '../ui';
+import { ExportDialog } from './ExportDialog';
 
 export function Modals() {
   const confirm = useUi((s) => s.confirm);
@@ -6,6 +7,7 @@ export function Modals() {
   const close = useUi((s) => s.closeConfirm);
   return (
     <>
+      <ExportDialog />
       {confirm && (
         <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && close('cancel')}>
           <div className="modal">

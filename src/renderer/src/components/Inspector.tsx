@@ -241,7 +241,7 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
                 <br />
                 Tamaño: {Math.round(asset.bounds[3] - asset.bounds[0])} × {Math.round(asset.bounds[4] - asset.bounds[1])} × {Math.round(asset.bounds[5] - asset.bounds[2])} u · {asset.triangles} triángulos
                 <br />
-                <span style={{ fontSize: 11 }}>{asset.source.kind === 'model' ? asset.source.path ?? asset.source.pak : asset.source.kind === 'tile' ? `textura ${asset.source.texture}` : asset.source.pak}</span>
+                <span style={{ fontSize: 11 }}>{asset.source.kind === 'model' ? asset.source.path ?? asset.source.pak : asset.source.kind === 'tile' ? `textura ${asset.source.texture}` : asset.source.kind === 'marker' ? 'marcador del editor' : asset.source.pak}</span>
               </>
             ) : (
               <span style={{ color: 'var(--danger)' }}>"{obj.asset}" no está en el catálogo</span>

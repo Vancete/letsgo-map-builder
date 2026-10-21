@@ -6,7 +6,7 @@
 //   folder: u64 nameHash, u32 count, u32 pad, then count x { u64 fileNameHash, u32 index, u32 pad }
 //   file entry (0x18): u16 level, u16 compression (0 none, 1 zlib, 2 lz4, 3 oodle), u32 size, u32 packedSize, u32 pad,
 //                      u64 offset
-import { lz4DecompressBlock } from './lz4.ts';
+import { lz4CompressBlock, lz4DecompressBlock } from './lz4.ts';
 
 export interface GfpakFile {
   index: number;
@@ -108,4 +108,71 @@ export function sniff(d: Uint8Array): string {
     if (/^[A-Z]{4}$/.test(id)) return 'fb:' + id;
   }
   return 'bin';
+}
+
+// Writes a GFLXPACK from (pathHash, nameHash, data) entries, one folder, LZ4 compressed. Keeps the layout of the game's
+// packs: header, path hashes, folder table, file table, then the data (16-aligned).
+export interface GfpakEntry {
+  pathHash: bigint;
+  nameHash: bigint;
+  folderHash: bigint;
+  data: Uint8Array;
+}
+
+export function writeGfpak(entries: GfpakEntry[]): Uint8Array {
+  const folders = new Map<bigint, number[]>();
+  entries.forEach((e, i) => {
+    const l = folders.get(e.folderHash);
+    l ? l.push(i) : folders.set(e.folderHash, [i]);
+  });
+  const packed = entries.map((e) => lz4CompressBlock(e.data));
+  const align = (n: number, a: number) => (n + a - 1) & ~(a - 1);
+  const headerSize = 0x28 + folders.size * 8;
+  const pathHashes = headerSize;
+  let p = pathHashes + entries.length * 8;
+  const folderOffs: number[] = [];
+  for (const [, idx] of folders) {
+    folderOffs.push(p);
+    p += 0x10 + idx.length * 0x10;
+  }
+  const fileTable = p;
+  p += entries.length * 0x18;
+  const dataOffs: number[] = [];
+  for (const d of packed) {
+    p = align(p, 16);
+    dataOffs.push(p);
+    p += d.length;
+  }
+  const out = new Uint8Array(align(p, 16));
+  const dv = new DataView(out.buffer);
+  out.set(new TextEncoder().encode('GFLXPACK'));
+  dv.setUint32(8, 0x1000, true);
+  dv.setUint32(0x10, entries.length, true);
+  dv.setUint32(0x14, folders.size, true);
+  dv.setBigUint64(0x18, BigInt(fileTable), true);
+  dv.setBigUint64(0x20, BigInt(pathHashes), true);
+  folderOffs.forEach((o, i) => dv.setBigUint64(0x28 + i * 8, BigInt(o), true));
+  entries.forEach((e, i) => dv.setBigUint64(pathHashes + i * 8, e.pathHash, true));
+  [...folders].forEach(([hash, idx], fi) => {
+    const o = folderOffs[fi];
+    dv.setBigUint64(o, hash, true);
+    dv.setUint32(o + 8, idx.length, true);
+    dv.setUint32(o + 12, 0xcc, true);
+    idx.forEach((i, k) => {
+      dv.setBigUint64(o + 0x10 + k * 0x10, entries[i].nameHash, true);
+      dv.setUint32(o + 0x18 + k * 0x10, i, true);
+      dv.setUint32(o + 0x1c + k * 0x10, 0xcc, true);
+    });
+  });
+  entries.forEach((e, i) => {
+    const o = fileTable + i * 0x18;
+    dv.setUint16(o, 9, true);
+    dv.setUint16(o + 2, 2, true);
+    dv.setUint32(o + 4, e.data.length, true);
+    dv.setUint32(o + 8, packed[i].length, true);
+    dv.setUint32(o + 12, 0xcc, true);
+    dv.setBigUint64(o + 0x10, BigInt(dataOffs[i]), true);
+    out.set(packed[i], dataOffs[i]);
+  });
+  return out;
 }

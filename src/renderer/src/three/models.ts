@@ -30,7 +30,7 @@ export function disposeTextures() {
 function makeMaterial(m: LgmMaterial, hasColor: boolean): THREE.Material {
   const mat = new THREE.MeshLambertMaterial({
     name: m.name,
-    color: m.map ? 0xffffff : 0xb8b8b8,
+    color: m.map ? 0xffffff : new THREE.Color(...m.color),
     map: m.map ? getTexture(m.map) : null,
     alphaTest: m.alphaTest,
     transparent: m.blend,

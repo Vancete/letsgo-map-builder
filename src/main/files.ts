@@ -1,5 +1,5 @@
 // Settings, game folder detection, map files and mod export.
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { openGameFS } from '../shared/formats/gamefs.ts';
 import type { AppSettings, MapDocument } from '../shared/types.ts';
@@ -89,11 +89,18 @@ export function safeName(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '') || 'mapa';
 }
 
-// A mod Let's Go Recomp lists (a folder with romfs/): the map rides in the RomFS at bin/lgmap/<name>.lgmap, a path the
-// game itself never reads, for the runtime's map loader to pick up through the mods' LayeredFS.
-export function exportMod(modsDir: string, doc: MapDocument, editorVersion: string): string {
+// The mod folder Let's Go Recomp lists (it has a romfs/): the game files the map builds into go under romfs/ (written by
+// the caller); the map itself rides along at romfs/bin/lgmap/<name>.lgmap, a path the game never reads, to open it
+// again in the editor.
+export function exportMod(
+  modsDir: string,
+  doc: MapDocument,
+  editorVersion: string,
+  game: { slot: string; entrance: { map: string; zone: string; at: number[] } },
+): string {
   const name = safeName(doc.name);
   const root = join(modsDir, name);
+  if (existsSync(join(root, 'romfs'))) rmSync(join(root, 'romfs'), { recursive: true, force: true });
   const mapDir = join(root, 'romfs', 'bin', 'lgmap');
   mkdirSync(mapDir, { recursive: true });
   writeMap(join(mapDir, `${name}.lgmap`), doc);
@@ -103,7 +110,8 @@ export function exportMod(modsDir: string, doc: MapDocument, editorVersion: stri
     author: doc.author,
     description: doc.description,
     map: `romfs/bin/lgmap/${name}.lgmap`,
-    romfsPath: `bin/lgmap/${name}.lgmap`,
+    slot: game.slot,
+    entrance: game.entrance,
     objects: doc.objects.length,
     editor: `letsgo-map-builder ${editorVersion}`,
     exportedAt: new Date().toISOString(),
@@ -111,9 +119,19 @@ export function exportMod(modsDir: string, doc: MapDocument, editorVersion: stri
   writeFileSync(join(root, 'mapmod.json'), JSON.stringify(manifest, null, 2));
   writeFileSync(
     join(root, 'README.txt'),
-    `${doc.name}${doc.author ? ` - ${doc.author}` : ''}\r\n\r\n${doc.description}\r\n\r\n` +
-      `Mapa creado con Let's Go Map Builder. Copia esta carpeta en la carpeta mods/ de Let's Go Recomp.\r\n` +
-      `El mapa está en romfs/bin/lgmap/${name}.lgmap (formato JSON documentado en el editor).\r\n`,
+    `${doc.name}${doc.author ? ` - ${doc.author}` : ''}
+
+${doc.description}
+
+` +
+      `Mapa creado con Let's Go Map Builder, para Let's Go Recomp. Activa este mod en la pestaña Mods del lanzador.
+` +
+      `En Pueblo Paleta aparece un teletransportador (en el camino entre las casas del norte) que lleva al mapa;
+` +
+      `en el mapa, la baldosa de salida devuelve a Pueblo Paleta.
+` +
+      `Reemplaza placement.gfpak y script_amx.gfpak: no lo combines con otros mods que cambien esos archivos.
+`,
   );
   return root;
 }

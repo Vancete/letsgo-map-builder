@@ -64,19 +64,13 @@ export async function saveMap(as: boolean): Promise<boolean> {
   }
 }
 
-export async function exportMod() {
-  try {
-    const dir = await window.api.exportMod(docForSave());
-    if (!dir) return;
-    ui().notify(`Mod exportado en ${dir}`);
-    const r = await ui().ask('Mod exportado', `El mapa se ha exportado como mod en:\n${dir}`, [
-      { label: 'Cerrar', value: 'close' },
-      { label: 'Abrir carpeta', value: 'open', primary: true },
-    ]);
-    if (r === 'open') window.api.openPath(dir);
-  } catch (e) {
-    ui().notify(`No se pudo exportar: ${(e as Error).message}`, true);
-  }
+export function exportMod() {
+  useUi.setState({ exportOpen: true });
+}
+
+// the map with the sources of the assets it uses (for the export)
+export function docForExport(): MapDocument {
+  return docForSave();
 }
 
 // ---- thumbnails
