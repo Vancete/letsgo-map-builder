@@ -1,117 +1,112 @@
 # Let's Go Map Builder
 
-Editor de mapas para **Pokémon: Let's Go, Pikachu! / Eevee!**, pensado para crear mapas que se carguen como mods en
-[Let's Go Recomp](../letsgo-recomp). Los modelos salen de tu propia copia del juego; el editor no incluye ningún archivo
-del juego.
+Map editor for **Pokémon: Let's Go, Pikachu! / Eevee!**, made to build maps that load as mods in
+[Let's Go Recomp](../letsgo-recomp). The models come from your own copy of the game; the editor ships no game files.
 
 > [!WARNING]
-> **Work in progress, en una fase muy temprana.** Los mapas ya se pueden jugar dentro de Let's Go Recomp (ver
-> [Jugar el mapa en el juego](#jugar-el-mapa-en-el-juego)), con limitaciones; el formato de archivo y la interfaz pueden
-> cambiar sin aviso.
+> **Work in progress, at a very early stage.** Maps can already be played inside Let's Go Recomp (see
+> [Playing the map in the game](#playing-the-map-in-the-game)), with limitations; the file format and the interface may
+> change without notice.
 
-![El editor: escena a la izquierda, vista 3D en el centro, inspector a la derecha y catálogo de objetos abajo](editor.png)
+The editor's interface is in Spanish; menu and button names below are given as they appear in it.
 
-Un mapa hecho en el editor ([`examples/pueblo-prueba.lgmap`](examples/pueblo-prueba.lgmap)) y el mismo mapa dentro del
-juego:
+A map made in the editor ([`examples/pueblo-prueba.lgmap`](examples/pueblo-prueba.lgmap)) and the same map in the game:
 
-![El mapa de ejemplo en el editor](docs/editor-map.png)
-![El mapa de ejemplo dentro del juego](docs/ingame.png)
+![The example map in the editor](docs/editor-map.png)
+![The example map in the game](docs/ingame.png)
 
-## Uso
+## Usage
 
 ```bash
 npm install
-npm run dev        # editor en modo desarrollo
-npm run build      # compila a out/
-npm start          # ejecuta lo compilado
+npm run dev        # the editor in development mode
+npm run build      # builds into out/
+npm start          # runs the build
 ```
 
-1. Al arrancar por primera vez, elige la carpeta del juego: tu instalación de Let's Go Recomp (usa
-   `extracted/romfs.bin`), una carpeta `romfs` extraída o el propio `romfs.bin`. Se detectan solas las instalaciones
-   habituales.
-2. Se extrae el catálogo (≈30 s) y se generan las miniaturas de los ~3000 objetos (≈1 min, en segundo plano).
-   **Catálogo › Regenerar miniaturas** las vuelve a crear; **Catálogo › Reconstruir el catálogo** vuelve a extraerlo
-   todo (se hace solo cuando cambia la versión del catálogo).
-3. Monta el mapa:
-   - **Abajo**, el catálogo por categorías (suelo, árboles, hierba, flores, saltos y desniveles, rocas, vallas,
-     mobiliario, Centros Pokémon, tiendas, gimnasios, edificios, puertas, objetos de juego, zonas completas), con
-     buscador y filtro por zona de origen. Arrastra una miniatura a la vista, haz doble clic para ponerla en el centro, o
-     haz clic para "armarla" y coloca copias con cada clic en la vista (Esc para terminar).
-   - **Izquierda**, el árbol de la escena: grupos, arrastrar para reordenar o anidar, renombrar con doble clic,
-     ocultar y bloquear.
-   - **Centro**, la vista 3D con gizmo de mover / rotar / escalar (W / E / R) y ajuste a la rejilla.
-   - **Derecha**, el inspector: posición, rotación y escala numéricas (admite operaciones: `350+100`), la casilla de la
-     rejilla en la que está el objeto y las propiedades del mapa.
-4. Para Pokémon salvajes, coloca una **Zona de hierba alta** (categoría *Hierba*, la primera) y elige en el inspector su
-   tamaño en casillas, los niveles y qué Pokémon aparecen y con qué probabilidad (ver
-   [Zonas de hierba y Pokémon salvajes](#zonas-de-hierba-y-pokémon-salvajes)).
-5. Para el suelo, las **baldosas** de la categoría *Suelo* se exportan al juego; **Editar › Rellenar el suelo** (o
-   *Rellenar* en el inspector del mapa) cubre la rejilla con baldosas de 4 × 4. Para desniveles, saltos y escaleras usa
-   **Elevación** y **Escaleras** (categoría *Saltos y desniveles*), y para un cartel que se lee con A, **Cartel con texto**
-   (categoría *Mobiliario*). Ver [Desniveles, saltos y escaleras](#desniveles-saltos-y-escaleras) y [Carteles](#carteles).
-6. Coloca los marcadores de la categoría **Llegada y salida**: el *Punto de llegada* (la flecha: dónde aparece el
-   jugador) y la *Salida* (la baldosa de teletransporte que devuelve a Pueblo Paleta). Son opcionales; no pongas la
-   llegada pegada a la salida.
-7. **Archivo › Guardar** crea un `.lgmap`; **🎮 Exportar al juego** (o Ctrl+E) crea el mod (ver abajo).
+1. On first start, pick the game folder: your Let's Go Recomp install (it uses `extracted/romfs.bin`), an extracted
+   `romfs` folder or the `romfs.bin` itself. The usual install locations are detected on their own.
+2. The catalog is extracted (≈30 s) and thumbnails for its ~3000 objects are made (≈1 min, in the background).
+   **Catálogo › Regenerar miniaturas** makes the thumbnails again; **Catálogo › Reconstruir el catálogo** extracts
+   everything again (done on its own when the catalog version changes).
+3. Build the map:
+   - **Bottom**: the catalog by category (ground, trees, grass, flowers, ledges and slopes, rocks, fences, street
+     furniture, Pokémon Centers, shops, gyms, buildings, doors, gimmicks, whole zones), with a search box and a filter by
+     source zone. Drag a thumbnail into the view, double-click to put it in the middle, or click to "arm" it and place a
+     copy with every click in the view (Esc to stop).
+   - **Left**: the scene tree: groups, drag to reorder or nest, double-click to rename, hide and lock.
+   - **Center**: the 3D view with a move / rotate / scale gizmo (W / E / R) and grid snapping.
+   - **Right**: the inspector: position, rotation and scale as numbers (arithmetic works: `350+100`), the grid cell the
+     object is on, and the map's own properties.
+4. For wild Pokémon, place a **Zona de hierba alta** (tall-grass zone, category _Hierba_, the first one) and set its size
+   in cells, the levels and which Pokémon appear and how often in the inspector (see
+   [Tall-grass zones and wild Pokémon](#tall-grass-zones-and-wild-pokémon)).
+5. For the ground, the **tiles** of the _Suelo_ category are exported to the game; **Editar › Rellenar el suelo** (or
+   _Rellenar_ in the map's inspector) covers the grid with 4 × 4 tiles. For height changes, ledges and stairs use
+   **Elevación** and **Escaleras** (category _Saltos y desniveles_), and for a sign read with A, **Cartel con texto**
+   (category _Mobiliario_). See [Heights, ledges and stairs](#heights-ledges-and-stairs) and [Signs](#signs).
+6. Place the markers of the **Llegada y salida** category: the _Punto de llegada_ (the arrow: where the player arrives)
+   and the _Salida_ (the teleport pad back to Pallet Town). Both are optional; don't put the arrival right next to the
+   exit.
+7. **Archivo › Guardar** writes a `.lgmap`; **🎮 Exportar al juego** (or Ctrl+E) makes the mod (see below).
 
-La barra de menús (**Archivo, Editar, Ver, Catálogo, Ayuda**) tiene todas las órdenes con su atajo; la barra de
-herramientas solo las de uso continuo (deshacer, mover/rotar/escalar, ajuste a la rejilla, vista y exportar).
+The menu bar (**Archivo, Editar, Ver, Catálogo, Ayuda**) has every command with its shortcut; the toolbar only the
+everyday ones (undo, move/rotate/scale, grid snapping, the view, logic and export).
 
-![El editor con la barra de menús, una elevación con su acantilado y unas escaleras](docs/editor-terrain.png)
+![The editor with its menu bar, a raised block with its cliff, and stairs](docs/editor-terrain.png)
 
-### Controles
+### Controls
 
-| | |
-|---|---|
-| Clic | seleccionar (Ctrl/Mayús: añadir a la selección) |
-| Botón derecho / central / rueda | orbitar / desplazar / zoom |
-| W / E / R | mover / rotar / escalar |
-| Q | girar 90° |
-| Flechas, RePág/AvPág | mover una casilla (Mayús: ¼), subir/bajar |
-| X | activar/desactivar el ajuste a la rejilla |
-| G / T / F | rejilla / vista cenital / encuadrar |
-| Ctrl+D, Ctrl+G, Supr | duplicar, agrupar, eliminar |
-| Ctrl+Z / Ctrl+Y | deshacer / rehacer |
-| Ctrl+N / O / S / Mayús+S | nuevo / abrir / guardar / guardar como |
-| Ctrl+E | exportar al juego |
-| Ctrl+L | lógica (editor de bloques) |
+|                              |                                                    |
+| ---------------------------- | -------------------------------------------------- |
+| Click                        | select (Ctrl/Shift: add to the selection)          |
+| Right / middle button, wheel | orbit / pan / zoom                                 |
+| W / E / R                    | move / rotate / scale                              |
+| Q                            | turn 90°                                           |
+| Arrows, PgUp/PgDn            | move one cell (Shift: ¼), up/down                  |
+| X                            | grid snapping on/off                               |
+| G / T / F                    | grid / top view / frame the selection              |
+| Ctrl+D, Ctrl+G, Del          | duplicate, group, delete                           |
+| Ctrl+Z / Ctrl+Y              | undo / redo                                        |
+| Ctrl+N / O / S / Shift+S     | new / open / save / save as                        |
+| Ctrl+E                       | export to the game                                 |
+| Ctrl+L                       | logic (block editor)                               |
 
-## La rejilla
+## The grid
 
-Como en el juego, **una casilla mide 100 unidades** (la roca de Fuerza y la baldosa de teletransporte miden 100×100) y
-los objetos que coloca el propio juego están en los centros de casilla (múltiplos de 50). El ajuste por defecto es de ½
-casilla; "Centro de casilla" coloca cada objeto en el centro. Tamaño y origen de la rejilla se cambian en el inspector
-del mapa.
+As in the game, **a cell is 100 units** (a Strength boulder and a teleport pad are 100 × 100) and the objects the game
+places itself sit on cell centers (multiples of 50). Snapping is half a cell by default; "Centro de casilla" puts every
+object on a cell center. The grid's size and origin are set in the map's inspector.
 
-## De dónde salen los objetos
+## Where the objects come from
 
-- `bin/archive/field/buildmodel.gfpak`: los objetos que el juego coloca por separado (hierba alta, flores, árboles
-  cortables, rocas de Fuerza, farolas, puertas de Centros y tiendas, máquina del PC...). Los nombres se recuperan de las
-  rutas que cita `placement.gfpak` (en el archivo solo hay hashes FNV-1a de 64 bits).
-- Los modelos de cada zona (`bin/archive/field/<area>/<zona>.gfpak`) están "horneados": cada grupo (`tree001`,
-  `bldg_pc`, `town010_00_build01`) junta todas sus instancias en coordenadas de mundo. El editor separa cada grupo en
-  componentes conexos, agrupa los que se tocan en instancias, elimina duplicados y deja cada pieza con su origen en el
-  centro de su base. Así aparecen Centros Pokémon, tiendas, casas, bancos, farolas, carteles, vallas, desniveles...
-- Cada zona completa, para construir encima de un mapa existente.
-- Baldosas de suelo (1×1 y 4×4 casillas) con cada textura de terreno que usan las zonas.
+- `bin/archive/field/buildmodel.gfpak`: the objects the game places one by one (tall grass, flowers, cuttable trees,
+  Strength boulders, street lamps, Pokémon Center and shop doors, the PC...). Their names are recovered from the paths
+  `placement.gfpak` refers to (the pack itself only has FNV-1a 64-bit hashes).
+- Each zone's models (`bin/archive/field/<area>/<zone>.gfpak`) are "baked": every group (`tree001`, `bldg_pc`,
+  `town010_00_build01`) holds all its instances in world coordinates. The editor splits each group into connected
+  pieces, joins the ones that touch into instances, drops duplicates and leaves each piece with its origin at the center
+  of its base. That is how Pokémon Centers, shops, houses, benches, lamps, signs, fences, ledges... appear.
+- Every whole zone, to build on top of an existing map.
+- Ground tiles (1 × 1 and 4 × 4 cells) with every terrain texture the zones use.
 
-Formatos leídos: GFLXPACK (LZ4), GFBMDL (FlatBuffers), BNTX (deswizzle Tegra + BC1/BC2/BC3/BC4/BC5/BC7) y RomFS. Todo en
-TypeScript, en `src/shared/formats/`.
+Formats read: GFLXPACK (LZ4), GFBMDL (FlatBuffers), BNTX (Tegra deswizzle + BC1/BC2/BC3/BC4/BC5/BC7) and RomFS. All in
+TypeScript, in `src/shared/formats/`.
 
-## Formato del mapa (`.lgmap`)
+## Map format (`.lgmap`)
 
-JSON, unidades del juego (Y hacia arriba, 1 casilla = 100), rotaciones en grados (orden XYZ):
+JSON, game units (Y up, 1 cell = 100), rotations in degrees (XYZ order):
 
 ```jsonc
 {
   "format": "letsgo-map", "version": 1,
-  "name": "Mi pueblo", "author": "", "description": "",
+  "name": "My town", "author": "", "description": "",
   "grid": { "cellSize": 100, "width": 32, "depth": 32, "originX": -1600, "originZ": -1600 },
   "objects": [
     { "id": "o…", "name": "bldg_pc", "asset": "zp.area03.town003_00.bldg_pc.0", "parent": null,
       "position": [-600, 0, -500], "rotation": [0, 0, 0], "scale": [1, 1, 1], "visible": true, "locked": false }
   ],
-  // de dónde sale cada modelo usado, para reconstruirlo desde los archivos del juego sin el editor
+  // where every model used comes from, to rebuild it from the game's files without the editor
   "assets": {
     "zp.area03.town003_00.bldg_pc.0": { "name": "bldg_pc", "category": "pc",
       "source": { "kind": "zonePiece", "pak": "bin/archive/field/area03/town003_00.gfpak", "fileIndex": 0,
@@ -120,293 +115,291 @@ JSON, unidades del juego (Y hacia arriba, 1 casilla = 100), rotaciones en grados
 }
 ```
 
-Además, el mapa puede llevar `slotGround` (la pradera del hueco bajo el mapa: `true`/`false`; sin poner, solo si el mapa
-no tiene baldosas) y `border` (`{ "texture", "cells" }`: suelo alrededor del mapa), y los objetos del editor sus
-ajustes: `grass` (zona de hierba), `terrain` (`w`, `d`, `height`, `top`, `side`, `edges: { n, e, s, w: "wall" | "ledge" }`),
-`stairs` (`w`, `length`, `height`, `texture`) y `sign` (`{ "text" }`).
+A map may also have `slotGround` (the slot's meadow under the map: `true`/`false`; unset: only when the map has no
+tiles), `border` (`{ "texture", "cells" }`: ground around the map) and `logic` (the block editor's workspace, Blockly's
+JSON), and the editor's own objects their settings: `grass` (tall-grass zone), `terrain` (`w`, `d`, `height`, `top`,
+`side`, `edges: { n, e, s, w: "wall" | "ledge" }`), `stairs` (`w`, `length`, `height`, `texture`), `sign` (`{ "text" }`)
+and `trigger` (`{ "w", "d" }`).
 
-`source.kind`: `model` (un modelo entero de un `.gfpak`, con su ruta RomFS si se conoce), `zonePiece` (una instancia de
-un grupo de un modelo de zona, con el punto de su base en coordenadas de la zona), `zone` (zona completa) o `tile`
-(baldosa generada con una textura del juego) o `marker` (llegada y salida). Los objetos con `asset: null` son grupos; la posición de un hijo es
-relativa a su padre.
+`source.kind`: `model` (a whole model of a `.gfpak`, with its RomFS path when known), `zonePiece` (an instance of a group
+of a zone model, with the point at its base in the zone's coordinates), `zone` (a whole zone), `tile` (a tile generated
+with a game texture) or `marker` (the editor's own objects: arrival, exit, grass zone, raised block, stairs, sign,
+trigger zone). Objects with `asset: null` are groups; a child's position is relative to its parent.
 
-## Jugar el mapa en el juego
+## Playing the map in the game
 
-1. En el editor, **🎮 Exportar al juego**: elige la carpeta `mods/` de tu instalación de Let's Go Recomp (se propone sola)
-   y uno de los cuatro huecos de mapa. Se crea `mods/<Nombre del mapa>/`.
-2. En el lanzador de Let's Go Recomp, pestaña **Mods**, activa el mod (y desactiva otros mods de mapas o que cambien
+1. In the editor, **🎮 Exportar al juego**: pick the `mods/` folder of your Let's Go Recomp install (suggested on its own)
+   and one of the four map slots. `mods/<map name>/` is created.
+2. In the Let's Go Recomp launcher, **Mods** tab, enable the mod (and disable other map mods or mods that change
    `placement.gfpak` / `script_amx.gfpak`).
-3. Juega y ve a **Pueblo Paleta**: en el camino entre las casas del norte hay un teletransportador nuevo (la baldosa del
-   gimnasio de Ciudad Azafrán). Písalo para entrar en tu mapa, con el efecto de teletransporte del juego; la baldosa de
-   salida del mapa te devuelve a Paleta igual.
+3. Play and go to **Pallet Town**: on the path between the northern houses there is a new teleport pad (the Saffron Gym's
+   pad). Step on it to enter your map, with the game's teleport effect; the map's exit pad takes you back to Pallet Town
+   the same way.
 
-![El teletransporte: el jugador sube en un haz de luz y aparece en el mapa](docs/teleport.png)
+![The teleport: the player rises in a beam of light and appears in the map](docs/teleport.png)
 
-Un mapa exportado ahora (suelo de baldosas, hierba alta, árboles con sombra, un cartel):
+A map exported now (tiled ground, tall grass, trees with their shadows, a sign):
 
-![El mapa de ejemplo exportado con esta versión](docs/ingame-v2.png)
+![The example map exported with this version](docs/ingame-v2.png)
 
-![El teletransportador de Pueblo Paleta](docs/teleporter.png)
+![The teleport pad in Pallet Town](docs/teleporter.png)
 
-## Desniveles, saltos y escaleras
+## Heights, ledges and stairs
 
-![Salto: el jugador baja de una elevación saltando](docs/ledge.png)
+![A ledge: the player jumps down from a raised block](docs/ledge.png)
 
-- **Elevación**: un rectángulo de casillas elevado `Altura` unidades sobre la altura del objeto (en el juego los saltos
-  miden 50), con una textura arriba y otra en los lados. Cada borde (norte, este, sur, oeste) es un **acantilado**, que no
-  se pasa, o un **salto**, por el que el jugador baja saltando pero no sube. Varias elevaciones pueden tocarse; manda la
-  más alta en cada casilla.
-- **Escaleras**: `Ancho` × `Largo` casillas que suben `Altura` hacia donde mira el objeto (0°: norte; gíralo con Q).
-  Ponlas con el extremo alto contra el borde de una elevación de su misma altura.
-- Lo que pongas encima (el punto de llegada, la salida, zonas de hierba) se coloca a la altura del terreno.
+- **Elevación** (raised block): a rectangle of cells raised `Altura` units above the object's height (ledges in the game
+  are 50 high), with one texture on top and another on its sides. Each edge (north, east, south, west) is either a
+  **cliff**, which can't be crossed, or a **ledge**, which the player jumps down from but can't climb. Blocks may touch;
+  in each cell the highest one wins.
+- **Escaleras** (stairs): `Ancho` × `Largo` cells that climb `Altura` towards where the object faces (0°: north; turn it
+  with Q). Put the high end against the edge of a block of the same height.
+- Whatever is placed on top (the arrival point, the exit, grass zones) sits at the ground's height.
 
-![Unas escaleras en el juego, y un mapa entero subido 300 unidades con su hierba alta](docs/stairs-tiles.png)
+![Stairs in the game, and a whole map raised by 300 units with its tall grass](docs/stairs-tiles.png)
 
-Cómo lo hace el juego y cómo se exporta (`src/shared/terrain.ts`; el editor dibuja exactamente lo mismo que se exporta):
+How the game does it and how it is exported (`src/shared/terrain.ts`; the editor draws exactly what is exported):
 
-- El **suelo** (`<hueco>_floor.gfbcol`) es una sola malla a todas las alturas: en la Ruta 1 las terrazas están a 0, 50,
-  100... con caras verticales donde cambia la altura. El editor calcula una altura por casilla y escribe los rectángulos
-  de cada altura, las rampas de las escaleras y esas caras verticales.
-- Los **acantilados** son paredes (`col_wall`) en el borde de la parte alta.
-- Un **salto** no es una pared normal: es una caja cerrada y fina de paredes **`col_jump`**, una cara en la línea del
-  borde y otra 25 unidades hacia la parte baja (Ruta 1: z = −815 y −790). El juego deja atravesarla solo hacia abajo y
-  con la animación del salto.
-- En los archivos de pared, el campo 0 de cada polígono es el índice de su nombre en la lista de nombres del archivo
-  (`col_wall`, `col_sky`, `col_water`, `col_safety`, `col_jump`...); en los de suelo igual (`col_grass`, `col_ground`,
-  `col_sea`: el tipo de suelo).
+- The **floor** (`<slot>_floor.gfbcol`) is a single mesh at every height: on Route 1 the terraces are at 0, 50, 100...
+  with vertical faces where the height changes. The editor works out a height per cell and writes the rectangles of each
+  height, the stairs' ramps and those vertical faces.
+- **Cliffs** are walls (`col_wall`) along the edge of the higher ground.
+- A **ledge** is not an ordinary wall: it is a thin closed box of **`col_jump`** walls, one face on the edge line and one
+  25 units out over the lower ground (Route 1: z = −815 and −790). The game lets the player through it only downwards,
+  with the jump animation.
+- In wall files, field 0 of each polygon is the index of its name in the file's list of names (`col_wall`, `col_sky`,
+  `col_water`, `col_safety`, `col_jump`...); the same in floor files (`col_grass`, `col_ground`, `col_sea`: the kind of
+  ground).
 
-## Carteles
+## Signs
 
-![Un cartel del mapa leído en el juego](docs/sign.png)
+![A sign of the map read in the game](docs/sign.png)
 
-El **Cartel con texto** usa el cartel de Pueblo Paleta; su texto se escribe en el inspector. En el juego, al pulsar A
-delante (por su cara delantera) aparece la ventana con el texto: dos líneas por ventana, las siguientes van apareciendo,
-y una línea en blanco empieza una ventana nueva. Hasta 8 carteles por mapa.
+**Cartel con texto** uses Pallet Town's signboard; its text is written in the inspector. In the game, pressing A in front
+of it (on its front side) opens the message window with the text: two lines per window, the next ones scroll in, and an
+empty line starts a new window. A sign can also have logic (see [Logic with blocks](#logic-with-blocks)).
 
-Cómo funciona (`src/shared/signs.ts`):
+How it works (`src/shared/signs.ts`, `src/shared/amxgen.ts`):
 
-- La **lista 17** del placement de una zona son las cosas que se inspeccionan con A: posición, una caja que hay que
-  encarar (80 × 100 × 50 en Paleta, girada hacia el lado desde el que se lee) y, en el campo 11 de la transformada, el
-  **hash de un evento de script**. El jugador tiene que poder entrar en esa caja: la pared del cartel es más fina que el
-  modelo (con la caja del modelo, de 69 de fondo, no se llegaba).
-- `bin/script/param/script_id/script_id_record.bin` registra **cada evento** con el script que lo atiende y sus mensajes
-  (`0x59892b61…` → `bin/script/amx/town001.amx`, `script/town001.dat`). Al entrar en un mapa el juego carga los mensajes
-  de los eventos de sus zonas; al inspeccionar, ejecuta el script con el hash del evento en su variable global 0.
-- Los scripts son **AMX (Pawn) de 64 bits en codificación compacta** (cada celda en grupos de 7 bits, el más
-  significativo primero, el bit alto en todos los bytes menos el último y el bit 6 del primero como signo), con opcodes
-  "empaquetados" (operando en los 32 bits altos) y nombres de nativas por hash (`h = h·0x83 ^ byte`, nombres en claro en
-  `.rodata` del ejecutable: `MsgWin_`, `GetTargetFieldObjectID`, `ABKeyWait_`...). La función principal de
-  `town001.amx` hace un `switch` sobre el evento; cada caso llama a una función que pasa la etiqueta del mensaje
-  (FNV-1a 64 de `msg_town001_kanban_01`) a otra común que gira al jugador hacia el cartel y abre la ventana.
-- El mod usa ese script con dos parches del mismo tamaño (no se mueve nada, así que todos los saltos relativos siguen
-  valiendo): la tabla del `switch` lleva los eventos de los carteles a una función, y esa función muestra el mensaje cuya
-  etiqueta es **el propio hash del evento** (`LOAD_P_PRI 0` en vez de una constante).
-- Los mensajes van en `bin/message/<idioma>/script/<hueco>.dat` y `.tbl` (los de los huecos de prueba existen y están
-  registrados en `bin/message/asset.tbl`), en los 10 idiomas. Formato: una sección; por línea, desplazamiento, longitud
-  y flags; el texto en UTF-16 cifrado por línea (clave 0x7C89 + 0x2983·línea, XOR por carácter y la clave rotada 3 bits a
-  la izquierda). Salto de línea `0x000A`; `0x0010 0x0001 0xBE00` antes del salto desplaza una línea y `0xBE01` empieza
-  ventana nueva. El `.tbl` (AHTB) lista las etiquetas y termina en `msg_<zona>_max`.
+- **List 17** of a zone's placement holds what can be inspected with A: a position, a box to face (80 × 100 × 50 in
+  Pallet Town, turned to the side it is read from) and, in field 11 of its transform, the **hash of a script event**.
+  The player has to be able to get into that box: the sign's wall is thinner than the model (with the model's own box,
+  69 deep, the player couldn't reach it).
+- `bin/script/param/script_id/script_id_record.bin` registers **every event** with the script that handles it and its
+  messages (`0x59892b61…` → `bin/script/amx/town001.amx`, `script/town001.dat`). When entering a map, the game loads the
+  messages of the events of its zones; when inspecting, it runs the script with the event's hash in its global 0.
+- Scripts are **64-bit AMX (Pawn) in compact encoding** (each cell as 7-bit groups, most significant first, the high
+  bit set on every byte but the last and bit 6 of the first one as the sign), with "packed" opcodes (the operand in the
+  high 32 bits) and native names as hashes (`h = h·0x83 ^ byte`; the names are in plain text in the executable's
+  `.rodata`: `MsgWin_`, `GetTargetFieldObjectID`, `ABKeyWait_`...). `town001.amx`'s main function switches on the event;
+  each case calls a function that passes the message's label (FNV-1a 64 of `msg_town001_kanban_01`) to a common one that
+  turns the player towards the sign and opens the window.
+- The map's zone script is generated (see [Logic with blocks](#logic-with-blocks)): every sign is an event whose handler
+  shows its text, or runs its logic.
+- The messages go in `bin/message/<language>/script/<slot>.dat` and `.tbl` (the test slots' files exist and are
+  registered in `bin/message/asset.tbl`), in all 10 languages. Format: one section; per line, its offset, length and
+  flags; the text in UTF-16, encrypted per line (key 0x7C89 + 0x2983·line, XOR per character, the key rotated left 3
+  bits after each). Line break `0x000A`; `0x0010 0x0001 0xBE00` before the break scrolls one line and `0xBE01` starts a
+  new window. The `.tbl` (AHTB) lists the labels and ends with `msg_<zone>_max`.
 
-## Lógica con bloques
+## Logic with blocks
 
-![El editor de bloques: un cartel que cambia de texto cuando se pisa un botón](docs/logic-editor.png)
+![The block editor: a sign whose text changes once a button has been stepped on](docs/logic-editor.png)
 
-**🧩 Lógica** (Ctrl+L, o *Añadir lógica* en el inspector de un cartel o de una zona) abre el editor de bloques del mapa
-([Blockly](https://developers.google.com/blockly)): se arrastran bloques desde la izquierda, se encajan o se dejan
-sueltos, la rueda hace zoom y arrastrando el fondo se mueve uno por el lienzo. Solo se ejecuta lo que cuelga de un
-**evento**:
+**🧩 Lógica** (Ctrl+L, or _Añadir lógica_ in a sign's or a trigger zone's inspector) opens the map's block editor
+([Blockly](https://developers.google.com/blockly)): drag blocks from the left, snap them together or leave them loose;
+the wheel zooms and dragging the background moves around the canvas. Only what hangs from an **event** runs:
 
-- **Al leer el cartel** *X*: cuando el jugador lee ese cartel con A (sustituye al texto del inspector).
-- **Al pisar la zona** *X*: cuando entra en esa **Zona de activación** (categoría *Objetos de juego*: un rectángulo de
-  casillas que en el juego no se ve; encima se puede poner cualquier objeto para que parezca un botón). Una vez por visita
-  al mapa; hasta 6 zonas.
+- **Al leer el cartel** _X_ (on reading sign X): when the player reads that sign with A (it replaces the inspector's
+  text).
+- **Al pisar la zona** _X_ (on stepping into zone X): when the player walks into that **Zona de activación** (trigger
+  zone, category _Objetos de juego_: a rectangle of cells, invisible in the game; put any object on top to make it look
+  like a button). Once per visit to the map; up to 6 zones.
 
-Dentro: **mostrar texto**, **variables** (crear, establecer, cambiar en), **constantes** (número, verdadero/falso),
-**condiciones** (si / si no si / si no; =, ≠, <, ≤, >, ≥; y, o, no; + − ×). Las variables son números (verdadero = 1,
-falso = 0) y **se guardan en la partida**; hasta 15 por mapa. Los avisos (un bloque sin valor, un evento sin objeto...)
-salen abajo a la derecha y al exportar.
+Inside: **mostrar texto** (show a text), **variables** (create, set, change by), **constants** (number, true/false),
+**conditions** (if / else if / else; =, ≠, <, ≤, >, ≥; and, or, not; + − ×). Variables are numbers (true = 1, false = 0)
+and **are kept in the save**; up to 15 per map. Warnings (a block without a value, an event without an object...) show
+at the bottom right and when exporting.
 
-El ejemplo [`examples/cartel-y-boton.lgmap`](examples/cartel-y-boton.lgmap) es el de la imagen; en el juego:
+The example [`examples/cartel-y-boton.lgmap`](examples/cartel-y-boton.lgmap) is the one in the picture; in the game:
 
-![El cartel antes, el botón y el cartel después](docs/logic-game.png)
+![The sign before, the button, and the sign after](docs/logic-game.png)
 
-Cómo se lleva al juego (`src/shared/logic.ts`, `src/shared/amxgen.ts`):
+How it gets into the game (`src/shared/logic.ts`, `src/shared/amxgen.ts`):
 
-- La lógica se guarda en el mapa (`logic`) como el JSON de Blockly; la exportación lo lee sin Blockly y lo convierte en
-  un pequeño programa (eventos, sentencias, expresiones).
-- **El script** de la zona se genera: el de Pueblo Paleta (`town001.amx`, por sus funciones de mensaje) con nuestro
-  código **añadido al final de su código** (en Pawn las llamadas y los saltos son relativos y los datos se direccionan
-  desde su propia sección, así que nada se mueve), una función principal nueva (el punto de entrada `cip`) que compara el
-  hash del evento (global 0) con los nuestros, y una nativa más en su tabla (`WorkSet`; hay que mover detrás las demás
-  tablas y las secciones, incluido el campo `overlays` de la cabecera de Pawn 3.3: sin moverlo el juego se colgaba).
-  Las expresiones dejan su valor en PRI; los operadores binarios llevan la izquierda en ALT.
-- **Mostrar texto** en un cartel llama a la función de los carteles de Paleta (`0x1d80`: gira al jugador, abre la
-  ventana, espera y la cierra); en una zona, a la de mensaje sin girar (`0xf40`) y luego a esperar (`0xe80`) y cerrar
-  (`0xdb8`). Cada texto es una línea del archivo de mensajes de la zona.
-- **Las variables** son *works* del juego (`WorkGet(hash)`, `WorkSet(hash, valor)`), que se guardan en la partida: los
-  nombres de los works están en `bin/flagwork/*.tbl` (AHTB: el hash del nombre da su casilla en la partida, por orden) y
-  `system_works.tbl` tiene 15 casillas llamadas `NOUSED`; el mod las renombra (`LGMAP_WORK_01`...).
-- **Las zonas** son entradas de la **lista 14** del placement (las que el juego usa para escenas al pasar por un sitio):
-  posición, un área (su tamaño es **medio lado**, desde el centro), el hash del evento, y un work con un valor: el juego
-  solo la dispara mientras ese work vale eso. Si la condición sigue cumpliéndose, se dispara una y otra vez mientras el
-  jugador sigue dentro; por eso cada zona tiene su work (en `zone_works.tbl`, que tiene 6 casillas libres) y su script lo
-  pone a 1 antes de nada.
-- Los eventos de carteles y zonas se registran en `script_id_record.bin` con el script y los mensajes de la zona.
+- The logic is saved in the map (`logic`) as Blockly's JSON; the export reads it without Blockly and turns it into a
+  small program (events, statements, expressions).
+- **The zone's script** is generated: Pallet Town's (`town001.amx`, for its message functions) with our code **appended
+  after its code** (in Pawn, calls and jumps are relative and data is addressed from its own section, so nothing moves),
+  a new main function (the entry point, `cip`) that compares the event's hash (global 0) with ours, and one more native
+  in its table (`WorkSet`; the tables after it and the sections have to move, including the `overlays` field of the Pawn
+  3.3 header: without it the game crashed). Expressions leave their value in PRI; binary operators get their left side
+  in ALT.
+- **Mostrar texto** on a sign calls Pallet Town's sign function (`0x1d80`: turns the player, opens the window, waits and
+  closes it); in a trigger zone, the message function that doesn't turn the player (`0xf40`), then the wait (`0xe80`) and
+  close (`0xdb8`) ones. Each text is a line of the zone's message file.
+- **Variables** are the game's _works_ (`WorkGet(hash)`, `WorkSet(hash, value)`), kept in the save: works are named in
+  `bin/flagwork/*.tbl` (AHTB: a name's hash gives its slot in the save, in order) and `system_works.tbl` has 15 slots
+  named `NOUSED`; the mod renames them (`LGMAP_WORK_01`...).
+- **Trigger zones** are entries of placement **list 14** (the ones the game uses for scenes when passing a spot): a
+  position, an area (its size is **half its extent**, from the center), the event's hash, and a work with a value: the
+  game only fires it while that work has that value. If the condition stays true, it fires again and again while the
+  player stays inside; so each zone has a work of its own (in `zone_works.tbl`, which has 6 free slots) and its script
+  sets it to 1 first.
+- The events of signs and trigger zones are registered in `script_id_record.bin` with the zone's script and messages.
 
-## Zonas de hierba y Pokémon salvajes
+## Tall-grass zones and wild Pokémon
 
-![Una zona de hierba en el editor: tamaño, niveles y tabla de Pokémon en el inspector](docs/editor-grass.png)
+![A grass zone in the editor: size, levels and Pokémon table in the inspector](docs/editor-grass.png)
 
-Cada **Zona de hierba alta** del mapa es un rectángulo de casillas con su propia tabla: hasta 10 Pokémon (los 151 de
-Kanto, Meltan y Melmetal), la probabilidad de cada uno (deben sumar 100 %; **Repartir 100 %** lo iguala) y el rango de
-niveles. La misma tabla vale para Pikachu y Eevee.
+Each **Zona de hierba alta** of the map is a rectangle of cells with its own table: up to 10 Pokémon (Kanto's 151,
+Meltan and Melmetal), the chance of each one (they must add up to 100 %; **Repartir 100 %** evens them out) and the
+level range. The same table applies to Pikachu and Eevee.
 
-En el juego la zona se llena de hierba alta animada y los Pokémon aparecen y deambulan por ella, como en las rutas; al
-tocar uno empieza la captura:
+In the game the zone fills with animated tall grass and the Pokémon appear and wander in it, as on the routes; touching
+one starts the catch:
 
-![Antes y ahora: la hierba alta como la del juego y las sombras de los árboles suaves](docs/before-after.png)
-![Un Charmander salvaje Nv. 9 de la segunda zona](docs/encounter.png)
+![Before and now: tall grass like the game's and soft tree shadows](docs/before-after.png)
+![A wild level 9 Charmander from the second zone](docs/encounter.png)
 
-Cómo se construye (`src/shared/encounters.ts`):
+How it is built (`src/shared/encounters.ts`):
 
-- **Una zona del juego por zona de hierba.** El juego tiene una tabla de salvajes por *zona* (un mapa se divide en
-  zonas; cada una con su forma, su lista de objetos, sus scripts y su tabla), así que cada zona de hierba se exporta como
-  una zona nueva del hueco (`<hueco>_g1`, `_g2`…): su forma es el rectángulo de hierba y la zona base del mapa cubre el
-  resto de casillas, sin solaparse. Se registra en `ZoneNameHashTable.tbl` y lleva sus scripts (`.amx`).
-- **La hierba** es un *parche de vegetación* (lista 5 del placement de la zona): una posición, una forma `.gfbcol` de
-  casillas alrededor de ella y el modelo de mata (`enc_grass01.gfbmdl`), con la que el juego rellena la forma. Así son
-  todas las hierbas altas de las rutas del juego. Las 75 formas `_enc*.gfbcol` del juego llevan, además de la posición,
-  un **color por vértice** (atributo `{tipo 7, formato 3, 4}`: cuatro bytes, blanco en casi todas) que el juego lee para
-  cada mata; sin él leía basura y las matas salían de tamaños y tonos al azar (la captura de la izquierda).
-- **La tabla** se añade a `bin/field/param/encount/encount_data_p.bin` (Pikachu) y `_e.bin` (Eevee), copiando la de la
-  Ruta 1 (cuántos aparecen a la vez, cada cuánto) y cambiando huecos y niveles. Formato de una tabla (FlatBuffers):
-  campo 0 = hash de la zona; hierba: 4 máximo a la vez, 5 intervalo, 7/8 nivel mínimo/máximo, 10 los 10 huecos
-  `{0 probabilidad %, 1 especie}`; agua 12–18 y cielo 35–41 con la misma forma (vaciados).
+- **One game zone per grass zone.** The game has one wild table per _zone_ (a map is split into zones, each with its
+  shape, its object lists, its scripts and its table), so each grass zone is exported as a new zone of the slot
+  (`<slot>_g1`, `_g2`…): its shape is the grass rectangle and the map's base zone covers the remaining cells, without
+  overlapping. It is registered in `ZoneNameHashTable.tbl` and gets its scripts (`.amx`).
+- **The grass** is a _vegetation patch_ (list 5 of the zone's placement): a position, a `.gfbcol` shape of cells around
+  it and the tuft model (`enc_grass01.gfbmdl`), with which the game fills the shape. All the tall grass of the game's
+  routes is made that way. The game's 75 `_enc*.gfbcol` shapes carry, besides the position, a **color per vertex**
+  (attribute `{type 7, format 3, 4}`: four bytes, white in nearly all of them) that the game reads for every tuft;
+  without it, it read garbage and tufts came out in random sizes and shades (the left picture).
+- **The table** is added to `bin/field/param/encount/encount_data_p.bin` (Pikachu) and `_e.bin` (Eevee), copying Route
+  1's (how many appear at once, how often) and changing slots and levels. A table's format (FlatBuffers): field 0 = the
+  zone's hash; grass: 4 max at once, 5 interval, 7/8 min/max level, 10 the 10 slots `{0 chance %, 1 species}`; water
+  12–18 and sky 35–41 with the same shape (emptied).
 
-### Cómo funciona
+### How it works
 
-El juego no tiene un formato de mapa abierto: el mod **sustituye uno de sus mapas sin usar** por el tuyo, con los mismos
-tipos de archivo que usan sus mapas. Los huecos son las cuatro salas de pruebas de personajes (`test_chr01`…`04`): el
-juego las tiene registradas (con su modelo, colisiones, terreno y placement) pero ningún camino lleva a ellas.
+The game has no open map format: the mod **replaces one of its unused maps** with yours, using the same file types its
+maps use. The slots are the four character test rooms (`test_chr01`…`04`): the game has them registered (with their
+model, collision, terrain and placement), but no path leads to them.
 
-| Archivo del mod (`romfs/…`) | Qué es |
-|---|---|
-| `bin/field/model/<hueco>/<hueco>.gfbmdl` | el modelo del mapa: los triángulos de cada objeto, tomados de los datos de vértice originales del juego (no de la caché del editor) y movidos a su sitio; todo en un modelo, con los materiales originales |
-| `bin/archive/field/<hueco>.gfpak` | los recursos del hueco más los shaders (`<material>.bnsh_vsh/.bnsh_fsh`) y texturas (`<textura>.bntx`) de cada material, copiados de las paks de donde vienen las piezas |
-| `bin/field/model/<hueco>/<hueco>_floor/_wall/_zone.gfbcol` | colisiones: el suelo a todas las alturas, paredes alrededor de la rejilla, cajas alrededor de los objetos sólidos (edificios, árboles, rocas, vallas, mobiliario), acantilados y saltos, y la forma de la zona |
-| `bin/field/param/terrain/<hueco>/terrain_data.bin` | el bloque de terreno del hueco, con el tamaño del mapa (y altura) |
-| `bin/archive/field/placement.gfpak` | el placement del hueco (ajustes de un mapa exterior, sin los personajes de prueba, con la baldosa de vuelta y los carteles); el de `area02` con el teletransportador en Pueblo Paleta |
-| `bin/archive/script_amx.gfpak` | los scripts que toda zona necesita (`<zona>.amx`, `init_<zona>.amx`); las salas de prueba no los tienen y sin ellos el juego se cuelga al entrar. Con carteles, el de la zona es el que los atiende |
-| `bin/script/param/script_id/script_id_record.bin` | (con carteles o lógica) sus eventos, con su script y sus mensajes |
-| `bin/message/<idioma>/script/<hueco>.dat/.tbl` | (con carteles o lógica) sus textos |
-| `bin/flagwork/system_works.tbl`, `zone_works.tbl` | (con variables o zonas de activación) los nombres de sus works |
-| `bin/field/model/<hueco>/<hueco>_gN_zone/_enc.gfbcol` | forma de cada zona de hierba y de su parche de hierba |
-| `bin/field/param/encount/encount_data_p/_e.bin` | las tablas de Pokémon salvajes de las zonas de hierba |
-| `bin/field/param/placement/table/ZoneNameHashTable.tbl` | los nombres de las zonas nuevas |
-| `bin/lgmap/<nombre>.lgmap` | el mapa del editor (el juego no lo lee; sirve para volver a abrirlo) |
+| Mod file (`romfs/…`)                                     | What it is                                                                                                                                                                  |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bin/field/model/<slot>/<slot>.gfbmdl`                   | the map's model: every object's triangles, taken from the game's original vertex data (not the editor's cache) and moved into place; all in one model, with the original materials |
+| `bin/archive/field/<slot>.gfpak`                         | the slot's resources plus the shaders (`<material>.bnsh_vsh/.bnsh_fsh`) and textures (`<texture>.bntx`) of every material, copied from the packs the pieces come from         |
+| `bin/field/model/<slot>/<slot>_floor/_wall/_zone.gfbcol` | collision: the floor at every height, walls around the grid, boxes around solid objects (buildings, trees, rocks, fences, furniture), cliffs and ledges, and the zone's shape |
+| `bin/field/param/terrain/<slot>/terrain_data.bin`        | the slot's terrain block, with the map's size (and height)                                                                                                                  |
+| `bin/archive/field/placement.gfpak`                      | the slot's placement (an outdoor map's settings, without the test characters, with the pad back, signs and trigger zones); area02's with the teleport pad in Pallet Town     |
+| `bin/archive/script_amx.gfpak`                           | the scripts every zone needs (`<zone>.amx`, `init_<zone>.amx`); the test rooms have none and the game hangs on entering without them. With signs or logic, the generated one  |
+| `bin/script/param/script_id/script_id_record.bin`        | (with signs or logic) their events, with their script and messages                                                                                                          |
+| `bin/message/<language>/script/<slot>.dat/.tbl`          | (with signs or logic) their texts                                                                                                                                           |
+| `bin/flagwork/system_works.tbl`, `zone_works.tbl`        | (with variables or trigger zones) the names of their works                                                                                                                  |
+| `bin/field/model/<slot>/<slot>_gN_zone/_enc.gfbcol`      | the shape of each grass zone and of its grass patch                                                                                                                         |
+| `bin/field/param/encount/encount_data_p/_e.bin`          | the grass zones' wild Pokémon tables                                                                                                                                        |
+| `bin/field/param/placement/table/ZoneNameHashTable.tbl`  | the names of the new zones                                                                                                                                                  |
+| `bin/lgmap/<name>.lgmap`                                 | the editor's map (the game doesn't read it; it is there to open it again)                                                                                                   |
 
-**El suelo.** Las baldosas del editor se exportan dibujadas con un material de suelo del juego (`FieldObjectShader`, el
-de los adoquines de la Ruta 1, `roadstone01_com` en `area02/road001_00`) cuya textura se cambia por la de la baldosa.
-El hueco trae su propio suelo, una pradera de pruebas de 40 × 40 casillas con las UV en islas (se le notan franjas): por
-defecto solo se pone bajo mapas sin baldosas (*Pradera del hueco* en el inspector del mapa). Más allá del borde del mapa
-el juego no dibuja nada, solo su fondo: **no es un suelo de la sala de pruebas** (el único modelo que carga el mapa es el
-nuestro, comprobado con el registro de archivos abiertos, y subir el mapa entero 300 unidades no cambia ese fondo), así
-que bajar o subir el mapa no lo tapa; para eso está el **Borde exterior** (un anillo de suelo alrededor, solo visual).
+**The ground.** The editor's tiles are exported drawn with a game ground material (`FieldObjectShader`, Route 1's paving
+stones, `roadstone01_com` in `area02/road001_00`) with its texture replaced by the tile's. The slot comes with its own
+ground, a 40 × 40-cell test meadow whose UVs are in islands (stripes show): by default it only goes under maps without
+tiles (_Pradera del hueco_ in the map's inspector). Beyond the map's edge the game draws nothing but its background:
+**it is not a test-room floor** (the only model the map loads is ours, checked with the log of opened files, and raising
+the whole map by 300 units doesn't change that background), so lowering or raising the map doesn't hide it; that is
+what the **Borde exterior** is for (a ring of ground around the map, only drawn).
 
-Sin la interfaz: `node scripts/build-map-mod.ts <mapa.lgmap> <caché del catálogo> <carpeta del juego> <carpeta mods> [nombre]`.
+Without the interface: `node scripts/build-map-mod.ts <map.lgmap> <catalog cache> <game folder> <mods folder> [name]`.
 
-### Lo que hubo que averiguar
+### What had to be worked out
 
-Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
+Notes on how this was reached, for whoever carries on:
 
-- **Placement** (`bin/archive/field/placement.gfpak`, un FlatBuffer por mapa en `bin/field/param/placement/<mapa>.bin`;
-  los nombres se recuperan probando rutas contra los hashes FNV-1a 64): la raíz es el mapa (campo 1 = hash del nombre),
-  con un vector de zonas; cada zona tiene su información (campo 1 = hash del nombre de zona, p. ej. `town001` = Pueblo
-  Paleta) y unas 28 listas de objetos. Lista 2: objetos con modelo (`warp01.gfbmdl`…). Lista 4: **warps** (posición del
-  disparador, mapa destino *por nombre*, hash de la zona destino, posición y rotación de llegada, caja del disparador,
-  y en las puertas el modelo y la animación de la puerta). Lista 25: baldosas de teletransporte del gimnasio de Azafrán
-  (solo dentro del mismo mapa). Un warp se activa al entrar en su caja **caminando en la dirección de la caja**, así
-  que el teletransportador lleva cuatro, una por dirección.
-- **Editar FlatBuffers sin esquema**: los offsets solo apuntan hacia delante, así que lo que cambia se escribe de nuevo al
-  final del archivo y se re-enlaza (`src/shared/formats/fbedit.ts`). Para copiar tablas sin saber qué campos son
-  offsets, el editor **aprende el esquema** de cientos de instancias (un campo es offset si en todas apunta a un string,
-  una tabla o un vector de ellas).
-- **Mapas de prueba**: `test_chr01` se colgaba al entrar; enganchando `nn::fs::OpenFile` (`LARECOMP_HOOK_DUMP` del
-  runtime) se vio que pedía `bin/script/amx/test_chr01.amx` y luego `init_test_chr01.amx`, que no existen. El script
-  vacío que comparten muchas zonas sirve para los dos.
-- **`terrain_data.bin`** lista los bloques de terreno de cada mapa: caja, modelo, animación, colisión de pared y de suelo.
-- **Esquemas aprendidos de muchas muestras**: copiar las zonas aprendiendo solo de las del hueco (1–3 zonas) clasificaba
-  mal campos y corrompía la primera zona de hierba al añadir la segunda; ahora el esquema de zona se aprende de todas las
-  zonas de todos los mapas. Los strings vacíos (longitud 0) cuentan como strings.
-- **Sombras pixeladas**: los campos 13..18 de la raíz del placement no son los límites del mapa sino el volumen de la
-  sombra alrededor de la cámara (area02: −1536, −1024, −1536 .. 1536, 1024, 512; interiores −1024..768). El exportador
-  los llenaba con el tamaño del mapa y estiraba el mapa de sombras sobre todo él. Ahora la raíz del hueco se reescribe con
-  la forma y los valores de la de `area02` (campo 6 = exterior, 7..12 iluminación y niebla de exterior, 13..18, 23/24),
-  conservando su nombre y sus hijos.
-- **Sombras falsas**: los árboles y otras piezas proyectan su sombra con mallas invisibles (`FieldShadowOnlyShader`) que
-  el catálogo quita de las piezas; al exportar se recuperan las de la misma familia que caen dentro de la caja de la pieza.
-- **Campos a 0**: las tablas de FlatBuffers omiten los campos con su valor por defecto, así que muchas transformadas del
-  juego no tienen Y (o X, o Z). Al copiar una plantilla hay que **añadir** el campo (`cloneTable` con campos extra), no
-  solo escribirlo: la plantilla de parche de hierba no tenía Y y, con el mapa subido, la hierba se quedaba a altura 0.
-- **Teletransportadores**: los de la lista 25 pueden llevar a otro mapa (los de `t009r02` y `r010r01` lo hacen); los del
-  gimnasio de Azafrán tienen el campo 10 = 1, que los deja dentro del mismo mapa. Usando como plantilla uno sin ese campo
-  se cambia de mapa con el efecto de teletransporte; antes se usaban warps de la lista 4 (sin efecto).
-- **Llegada pegada a la salida**: con el punto de llegada al lado de la baldosa de salida, el teletransportador de
-  Paleta no llevaba al mapa.
-- **Materiales**: los campos 8 y 10 de un material son su número dentro del modelo (su shader en la lista de shaders);
-  al fusionar materiales de varios modelos hay que reescribirlos o el juego lee fuera de la lista.
-- Las pruebas se hicieron con las partidas guionizadas de Let's Go Recomp (`tools/scenario_shot.sh`, `mod = <nombre>` en
-  el ini), que llevan una copia de la partida a Pueblo Paleta y hacen capturas.
+- **Placement** (`bin/archive/field/placement.gfpak`, one FlatBuffer per map at `bin/field/param/placement/<map>.bin`;
+  the names are recovered by trying paths against the FNV-1a 64 hashes): the root is the map (field 1 = its name's hash),
+  with a vector of zones; each zone has its info (field 1 = the zone name's hash, e.g. `town001` = Pallet Town) and about
+  28 object lists. List 2: objects with a model (`warp01.gfbmdl`…). List 4: **warps** (the trigger's position, the
+  destination map _by name_, the destination zone's hash, the arrival position and rotation, the trigger box, and on
+  doors the door's model and animation); a warp fires when entering its box **walking in the box's direction**. List 5:
+  vegetation patches. List 14: step triggers. List 17: things to inspect. List 25: teleport pads.
+- **Editing FlatBuffers without a schema**: offsets only point forward, so whatever changes is written again at the end
+  of the file and linked in again (`src/shared/formats/fbedit.ts`). To copy tables without knowing which fields are
+  offsets, the editor **learns the schema** from hundreds of instances (a field is an offset if in all of them it points
+  at a string, a table or a vector of them).
+- **Test maps**: `test_chr01` hung on entering; hooking `nn::fs::OpenFile` (the runtime's `LARECOMP_HOOK_DUMP`) showed it
+  asked for `bin/script/amx/test_chr01.amx` and then `init_test_chr01.amx`, which don't exist. The empty script many
+  zones share does for both.
+- **`terrain_data.bin`** lists each map's terrain blocks: box, model, animation, wall and floor collision.
+- **Schemas learned from many samples**: copying zones learning only from the slot's (1–3 zones) misclassified fields and
+  corrupted the first grass zone when adding the second; the zone schema is now learned from every zone of every map.
+  Empty strings (length 0) count as strings.
+- **Pixelated shadows**: fields 13..18 of the placement root are not the map's bounds but the shadow volume around the
+  camera (area02: −1536, −1024, −1536 .. 1536, 1024, 512; interiors −1024..768). The exporter filled them with the map's
+  size and stretched the shadow map over all of it. The slot's root is now written again with area02's layout and values
+  (field 6 = outdoor, 7..12 outdoor lighting and fog, 13..18, 23/24), keeping its own name and children.
+- **Shadow casters**: trees and other pieces cast their shadow with invisible meshes (`FieldShadowOnlyShader`) the
+  catalog leaves out of the pieces; the export finds again the ones of the same family inside the piece's box.
+- **Fields at 0**: FlatBuffers tables leave out fields at their default value, so many of the game's transforms have no
+  Y (or X, or Z). When copying a template the field has to be **added** (`cloneTable` with extra fields), not just
+  written: the grass patch template had no Y and, with the map raised, the grass stayed at height 0.
+- **Teleport pads**: list 25 pads can lead to another map (`t009r02`'s and `r010r01`'s do); the Saffron Gym's have field
+  10 = 1, which keeps them within the same map. With a template without that field the map changes with the teleport
+  effect; walk-in warps of list 4 were used before (no effect).
+- **Arrival next to the exit**: with the arrival point right next to the exit pad, Pallet Town's teleport pad didn't take
+  the player to the map.
+- **Materials**: fields 8 and 10 of a material are its number in the model (its shader in the shader list); when merging
+  materials from several models they have to be rewritten or the game reads past the list.
+- Testing was done with Let's Go Recomp's scripted runs (`tools/scenario_shot.sh`, `mod = <name>` in the ini), which take
+  a copy of the save to Pallet Town and take screenshots.
 
-### Limitaciones
+### Limitations
 
-- Solo se llega desde Pueblo Paleta (posición fija del teletransportador) y solo un mod de mapa activo a la vez: el mod
-  reemplaza `placement.gfpak` y `script_amx.gfpak` enteros (y, con carteles, `script_id_record.bin`).
-- Las elevaciones y escaleras van alineadas a la rejilla; las escaleras suben en línea recta. Las texturas de los lados y
-  las escaleras usan un material de objeto, sin la mezcla de hierba en el borde de los acantilados del juego.
-- Los carteles y las zonas de activación responden en la zona base del mapa (no se ha probado dentro de una zona de
-  hierba). Zonas de activación: hasta 6, y una vez por visita. Variables: hasta 15, solo números.
-- La lógica es sencilla de momento: eventos de leer y pisar, textos, variables y condiciones (sin bucles, sin preguntas
-  sí/no, sin dar objetos ni mover personajes).
-- Las zonas completas y los objetos animados (puertas) se exportan como geometría fija. Las matas de hierba alta sueltas
-  del catálogo también: para encuentros hay que usar una *Zona de hierba alta*.
-- Las zonas de hierba son rectángulos alineados a la rejilla (no giran) y su tabla es la misma en Pikachu y Eevee; no
-  hay Pokémon en el agua ni voladores.
-- Las puertas de los edificios no llevan a ningún sitio.
+- The map is only reached from Pallet Town (fixed teleport pad position), and only one map mod can be active at a time:
+  the mod replaces `placement.gfpak` and `script_amx.gfpak` whole (and, with signs or logic, `script_id_record.bin`).
+- Raised blocks and stairs are aligned to the grid; stairs climb in a straight line. The sides and stairs use an object
+  material, without the grass blend along the game's cliff edges.
+- Signs and trigger zones work in the map's base zone (not tested inside a grass zone). Trigger zones: up to 6, once per
+  visit. Variables: up to 15, numbers only.
+- The logic is simple for now: read and step events, texts, variables and conditions (no loops, no yes/no questions, no
+  giving items or moving characters).
+- Whole zones and animated objects (doors) are exported as static geometry. So are the catalog's loose tall-grass tufts:
+  encounters need a _Zona de hierba alta_.
+- Grass zones are grid-aligned rectangles (they don't rotate) and their table is the same for Pikachu and Eevee; there
+  are no water or flying Pokémon.
+- Building doors lead nowhere.
 
-## Pendiente
+## To do
 
-- Elegir en el editor el mapa y el sitio del teletransportador de entrada.
-- Bordes de acantilado con la hierba del juego (su `FieldCliffShader01`), rampas y escaleras en curva.
-- Carteles con otros modelos y NPCs que hablan (la misma vía: lista de personajes + evento + script).
-- Más bloques: preguntas sí/no, dar objetos, combates, mover y girar personajes, sonidos, esperar; zonas que se
-  rearman al salir de ellas.
-- Pokémon en el agua y voladores (las mismas tablas tienen esos bloques), tablas distintas para Pikachu y Eevee.
-- NPCs y objetos del juego (otras listas de placement).
-- Los materiales del visor se aproximan con iluminación Lambert; los shaders de terreno que mezclan varias texturas
-  usan solo la principal.
+- Choosing in the editor the map and spot of the entrance teleport pad.
+- Cliff edges with the game's grass (its `FieldCliffShader01`), curved ramps and stairs.
+- Signs with other models and NPCs that talk (the same way: the character list + an event + the script).
+- More blocks: yes/no questions, giving items, battles, moving and turning characters, sounds, waiting; trigger zones
+  that re-arm when the player leaves them.
+- Water and flying Pokémon (the same tables have those blocks), different tables for Pikachu and Eevee.
+- The game's NPCs and items (other placement lists).
+- The viewer's materials are approximated with Lambert lighting; terrain shaders that blend several textures use only
+  the main one.
 
-## Estructura
+## Layout
 
 ```
-src/shared/formats/   lectores de formatos del juego (gfpak, lz4, flatbuf, gfbmdl, bntx, bcn, gamefs, png)
-src/shared/extract.ts construcción del catálogo (modelos LGM + texturas PNG en la caché)
-src/shared/lgm.ts     formato de modelo de la caché
-src/shared/placement.ts  placement del juego: warps, teletransportadores, listas de objetos
-src/shared/mapbuild.ts   exportación al juego (modelo fusionado, pak, colisiones, terreno, placement, scripts)
-src/shared/terrain.ts    alturas por casilla: suelo, acantilados, saltos, escaleras y sus superficies
-src/shared/collision.ts  archivos .gfbcol (nombres por polígono, color por vértice)
-src/shared/signs.ts      carteles: AMX compacto, mensajes cifrados, registro de eventos, works renombrados
-src/shared/logic.ts      la lógica de bloques: lee el JSON de Blockly
-src/shared/amxgen.ts     genera el script de la zona (AMX) desde los carteles y la lógica
-src/renderer/src/logic/  los bloques del editor (Blockly)
-src/shared/encounters.ts zonas de hierba: zonas nuevas, parches de vegetación, tablas de salvajes, nombres de zona
-src/shared/pokemon.ts    especies de Let's Go
-src/main/             proceso principal de Electron (ajustes, catálogo en un worker, archivos, mods)
-src/renderer/         interfaz (React + three.js): store con deshacer, vista 3D, miniaturas, paneles
-scripts/              utilidades de desarrollo: extract-cli, build-map-mod (exportar un .lgmap sin la interfaz),
-                      pakinfo, pakhash, pakextract, fbdump, coldump, listdump, mdlinfo, meshattrs, rootfields, schema,
-                      warps, debugtable, texdump, cdp (pruebas automáticas)
+src/shared/formats/      readers of the game's formats (gfpak, lz4, flatbuf, gfbmdl, bntx, bcn, gamefs, png)
+src/shared/extract.ts    builds the catalog (LGM models + PNG textures in the cache)
+src/shared/lgm.ts        the cache's model format
+src/shared/placement.ts  the game's placement: warps, teleport pads, object lists, signs, step triggers
+src/shared/mapbuild.ts   the export to the game (merged model, pack, collision, terrain, placement, scripts)
+src/shared/terrain.ts    heights per cell: floor, cliffs, ledges, stairs and their surfaces
+src/shared/collision.ts  .gfbcol files (names per polygon, color per vertex)
+src/shared/signs.ts      compact AMX, encrypted messages, the event register, renamed works
+src/shared/logic.ts      the block logic: reads Blockly's JSON
+src/shared/amxgen.ts     generates the zone script (AMX) from the signs and the logic
+src/shared/encounters.ts grass zones: new zones, vegetation patches, wild tables, zone names
+src/shared/pokemon.ts    Let's Go's species
+src/main/                Electron's main process (settings, the catalog in a worker, files, mods)
+src/renderer/            the interface (React + three.js): store with undo, 3D view, thumbnails, panels
+src/renderer/src/logic/  the editor's blocks (Blockly)
+scripts/                 development tools: extract-cli, build-map-mod (export a .lgmap without the interface),
+                         pakinfo, pakhash, pakextract, fbdump, coldump, listdump, mdlinfo, meshattrs, rootfields,
+                         schema, warps, debugtable, texdump, cdp (automated tests)
 ```
 
-La caché vive en `%APPDATA%/letsgo-map-builder/library`.
+The cache lives in `%APPDATA%/letsgo-map-builder/library`.
