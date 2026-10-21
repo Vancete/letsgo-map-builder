@@ -717,6 +717,12 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
     };
     writeFileSync(join(modelsDir, 'lg.spawn.lgm'), deflateSync(encodeLgm(arrow)));
     assets.unshift({ id: 'lg.spawn', name: 'Punto de llegada', category: 'marker', zone: null, source: { kind: 'marker', marker: 'spawn' }, bounds: arrow.bounds, triangles: 1 });
+    // a tall-grass zone (drawn by the editor as tufts over its cells; its thumbnail is the game's tuft)
+    const tuft = assets.find((a) => a.id === 'bm.enc_grass01');
+    if (tuft && existsSync(join(modelsDir, 'bm.enc_grass01.lgm'))) {
+      writeFileSync(join(modelsDir, 'lg.grass.lgm'), readFileSync(join(modelsDir, 'bm.enc_grass01.lgm')));
+      assets.unshift({ id: 'lg.grass', name: 'Zona de hierba alta (Pokémon salvajes)', category: 'grass', zone: null, source: { kind: 'marker', marker: 'grass' }, bounds: tuft.bounds, triangles: tuft.triangles });
+    }
     const pad = assets.find((a) => a.id === 'bm.warp01');
     if (pad && existsSync(join(modelsDir, 'bm.warp01.lgm'))) {
       writeFileSync(join(modelsDir, 'lg.exit.lgm'), readFileSync(join(modelsDir, 'bm.warp01.lgm')));

@@ -17,8 +17,9 @@ import { FBEditor, buildTable, cloneWithSchema, learnSchema, type FieldSpec, typ
 import { Gfpak, fnv1a64, writeGfpak, type GfpakEntry } from './formats/gfpak.ts';
 import { boneWorldMatrices, isIdentity, parseGfbmdl, type GfModel } from './formats/gfbmdl.ts';
 import type { GameFS } from './formats/gamefs.ts';
-import { Templates, addTeleporter, editZoneList, placementPath, zoneIndexOf } from './placement.ts';
-import type { AssetEntry, AssetSource, Category, MapDocument, MapObject } from './types.ts';
+import { Templates, addTeleporter, editZoneList, learnZoneSchema, placementPath, zoneIndexOf } from './placement.ts';
+import { ENCOUNT_FILES, ZONE_NAME_TABLE, addEncounterTables, addHashNames, addZone, cellsMesh, grassPatchMaker } from './encounters.ts';
+import { GRASS_ASSET, defaultGrass, grassRect, type AssetEntry, type AssetSource, type Category, type MapDocument, type MapObject, type WildTable } from './types.ts';
 
 export const MAP_SLOTS = ['test_chr01', 'test_chr02', 'test_chr03', 'test_chr04'];
 
@@ -278,6 +279,29 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   }
   if (!exit) exit = [spawn[0], spawn[1], spawn[2] + 3 * g.cellSize];
 
+  // tall-grass zones: cells of the slot's grid (the map's grid starts at the slot's origin)
+  const cell = g.cellSize;
+  const grass: { name: string; cells: [number, number][]; center: [number, number, number]; wild: WildTable }[] = [];
+  const grassCells = new Set<string>();
+  for (const x of o.doc.objects) {
+    if (x.asset !== GRASS_ASSET || !visible(x)) continue;
+    const z = x.grass ?? defaultGrass();
+    const m = mul(toSlot, worldMatrix(x, byId));
+    const c = apply(m, 0, 0, 0);
+    const { cx0, cz0, w, d } = grassRect(c[0], c[2], z, cell);
+    const cells: [number, number][] = [];
+    for (let i = 0; i < w; i++)
+      for (let k = 0; k < d; k++) {
+        const key = `${cx0 + i},${cz0 + k}`;
+        if (grassCells.has(key)) continue;
+        grassCells.add(key);
+        cells.push([cx0 + i, cz0 + k]);
+      }
+    if (!cells.length) continue;
+    if (!z.wild.slots.some((sl) => sl.species && sl.rate)) warnings.push(`${x.name}: zona de hierba sin Pokémon`);
+    grass.push({ name: `${slot}_g${grass.length + 1}`, cells, center: [(cx0 + w / 2) * cell, c[1], (cz0 + d / 2) * cell], wild: z.wild });
+  }
+
   // materials and meshes
   const materials: MatRef[] = [];
   const matIndex = new Map<string, number>();
@@ -385,7 +409,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   }
 
   for (const obj of o.doc.objects) {
-    if (!obj.asset || obj.asset === SPAWN_ASSET || obj.asset === EXIT_ASSET || !visible(obj)) continue;
+    if (!obj.asset || obj.asset === SPAWN_ASSET || obj.asset === EXIT_ASSET || obj.asset === GRASS_ASSET || !visible(obj)) continue;
     const info = sourceOf(obj.asset);
     if (!info) {
       warnings.push(`${obj.name}: modelo desconocido (${obj.asset})`);
@@ -621,7 +645,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   // ---- collision
   // GFBCOL: 0 names {0 name}, 1 {1 bounds}, 2 meshes {0 polygons {1 u16 triangles}, 1 attributes {2 count: 3
   // floats}, 2 vertex data}, 3 {0 bounds, 1 u32 list of meshes}
-  const colFile = (kind: 'floor' | 'wall' | 'zone', verts: number[], indices: number[]) => {
+  const colFile = (kind: string, verts: number[], indices: number[]) => {
     const c = new FBEditor(new Uint8Array(8));
     const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     for (let i = 0; i < verts.length; i += 3)
@@ -673,8 +697,21 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   quads([wall(0, 0, W, 0, lo, hi), wall(W, 0, W, D, lo, hi), wall(W, D, 0, D, lo, hi), wall(0, D, 0, 0, lo, hi)], wv, wi);
   for (const [x0, z0, x1, z1] of walls)
     quads([wall(x0, z0, x1, z0, lo, hi), wall(x1, z0, x1, z1, lo, hi), wall(x1, z1, x0, z1, lo, hi), wall(x0, z1, x0, z0, lo, hi)], wv, wi);
-  const zv: number[] = [], zi: number[] = [];
-  quads([[0, 0, 0, W, 0, 0, 0, 0, D, W, 0, D]], zv, zi);
+  let zv: number[] = [], zi: number[] = [];
+  if (!grass.length) quads([[0, 0, 0, W, 0, 0, 0, 0, D, W, 0, D]], zv, zi);
+  else {
+    // the base zone: every cell but the grass zones' (zones don't overlap)
+    const rest: [number, number][] = [];
+    for (let i = 0; i < g.width; i++) for (let k = 0; k < g.depth; k++) if (!grassCells.has(`${i},${k}`)) rest.push([i, k]);
+    ({ verts: zv, idx: zi } = cellsMesh(rest, cell, 0, 0));
+  }
+  const grassFiles: { path: string; data: Uint8Array }[] = [];
+  for (const gz of grass) {
+    const shape = cellsMesh(gz.cells, cell, 0, 0); // the zone: slot coordinates
+    grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_zone.gfbcol`, data: colFile('zone', shape.verts, shape.idx) });
+    const patch = cellsMesh(gz.cells, cell, gz.center[0], gz.center[2]); // the patch: around its position
+    grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_enc.gfbcol`, data: colFile('enc', patch.verts, patch.idx) });
+  }
 
   // ---- terrain block: the map's size
   const terrainPath = `bin/field/param/terrain/${slot}/terrain_data.bin`;
@@ -696,6 +733,20 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       const pr = pe.u32(0);
       [-1000, -1024, -1000, W + 1000, 1024, D + 1000].forEach((v, i) => pe.setFieldF32(pr, 13 + i, v));
       data = pe.data;
+      // a zone per grass zone, with its patch of tall grass
+      const area02 = new FBEditor(ppak.read(ppak.byPath(placementPath('area02'))!));
+      const tplZone = area02.vectorElems(area02.child(area02.u32(0), 0)).find((z) => {
+        const l = area02.child(z, 5);
+        return l && area02.vectorElems(l).some((e) => area02.readString(area02.child(area02.child(e, 0), 2)).includes('enc_grass'));
+      })!;
+      const tplPatch = area02.vectorElems(area02.child(tplZone, 5)).find((e) => area02.readString(area02.child(area02.child(e, 0), 2)).includes('enc_grass'))!;
+      const zoneSchema = learnZoneSchema(ppak.files.map((x) => ppak.read(x)));
+      for (const gz of grass) {
+        const added = addZone(data, 0, gz.name, `bin/field/model/${slot}/${gz.name}_zone.gfbcol`, zoneSchema);
+        data = editZoneList(added.data, added.index, 5, [
+          grassPatchMaker(area02, tplPatch, gz.center, `bin/field/model/${slot}/${gz.name}_enc.gfbcol`, 'bin/field/model/buildmodel/enc_grass01.gfbmdl', `lgmap_${gz.name}`),
+        ], true, zoneSchema);
+      }
     } else if (f.pathHash === fnv1a64(placementPath(entrance.map))) {
       const z = zoneIndexOf(data, entrance.zone);
       if (z < 0) throw new Error(`La zona ${entrance.zone} no está en ${entrance.map}`);
@@ -710,7 +761,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   const sfolder = spak.files[0].folderHash;
   const empty = spak.read(spak.byPath('bin/script/amx/town010.amx')!); // the empty zone script many zones share
   const init = spak.read(spak.byPath('bin/script/amx/init_town010.amx')!); // only a debug print of the zone name differs
-  for (const [file, data] of [[`${slot}.amx`, empty], [`init_${slot}.amx`, init]] as const)
+  for (const [file, data] of [[`${slot}.amx`, empty], [`init_${slot}.amx`, init], ...grass.flatMap((gz) => [[`${gz.name}.amx`, empty], [`init_${gz.name}.amx`, init]])] as [string, Uint8Array][])
     if (!spak.byPath(`bin/script/amx/${file}`)) sentries.push({ pathHash: fnv1a64(`bin/script/amx/${file}`), nameHash: fnv1a64(file), folderHash: sfolder, data });
 
   return {
@@ -723,6 +774,13 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       { path: terrainPath, data: te.data },
       { path: 'bin/archive/field/placement.gfpak', data: writeGfpak(pentries) },
       { path: 'bin/archive/script_amx.gfpak', data: writeGfpak(sentries) },
+      ...grassFiles,
+      ...(grass.length
+        ? [
+            ...ENCOUNT_FILES.map((path) => ({ path, data: addEncounterTables(o.fs.read(path), 'road001', grass.map((gz) => ({ zone: gz.name, wild: gz.wild }))) })),
+            { path: ZONE_NAME_TABLE, data: addHashNames(o.fs.read(ZONE_NAME_TABLE), grass.map((gz) => gz.name)) },
+          ]
+        : []),
     ],
     warnings,
     spawn,

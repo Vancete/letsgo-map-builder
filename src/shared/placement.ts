@@ -11,7 +11,7 @@
 //                 10..13 door parameters (optional)
 //   Transform:    0..2 position, 3..5 rotation (degrees), 6..8 scale, 9 u64 object id hash, 10, 11 u64 (empty hash)
 import { FB } from './formats/flatbuf.ts';
-import { FBEditor, buildTable, type FieldSpec } from './formats/fbedit.ts';
+import { FBEditor, buildTable, cloneWithSchema, learnSchema, type FieldSpec, type Schema } from './formats/fbedit.ts';
 import { FNV64_OFFSET, fnv1a64 } from './formats/gfpak.ts';
 
 export const placementPath = (map: string) => `bin/field/param/placement/${map}.bin`;
@@ -94,7 +94,17 @@ export function addWarp(file: Uint8Array, zoneIndex: number, w: WarpSpec | null)
 
 // ---- generic: append elements to one of a zone's lists (the list is written again at the end of the file)
 
-export function editZoneList(file: Uint8Array, zoneIndex: number, list: number, add: ((ed: FBEditor) => number)[], keep = true): Uint8Array {
+// The zone table's layout, learned from every zone of every map (a few maps alone don't show every field's kind)
+export function learnZoneSchema(maps: Uint8Array[]): Schema {
+  const samples: { ed: FBEditor; pos: number }[] = [];
+  for (const m of maps) {
+    const ed = new FBEditor(m);
+    for (const z of ed.vectorElems(ed.child(ed.u32(0), 0))) samples.push({ ed, pos: z });
+  }
+  return learnSchema(samples);
+}
+
+export function editZoneList(file: Uint8Array, zoneIndex: number, list: number, add: ((ed: FBEditor) => number)[], keep = true, zoneSchema?: Schema): Uint8Array {
   const ed = new FBEditor(file);
   const zones = ed.vectorElems(ed.child(ed.u32(0), 0));
   const zone = zones[zoneIndex];
@@ -102,7 +112,9 @@ export function editZoneList(file: Uint8Array, zoneIndex: number, list: number, 
   const field = ed.fieldPos(zone, list);
   if (!field) throw new Error(`placement: the zone has no list ${list}`);
   const old = keep ? ed.vectorElems(ed.deref(field)) : [];
-  const vec = ed.vectorOfTables([...old.map((p) => () => ed.cloneDeep(p)), ...add.map((a) => () => a(ed))]);
+  const k = zoneSchema?.get(list);
+  const clone = (p: number) => (k?.kind === 'vtables' ? cloneWithSchema(ed, ed, p, k.schema) : ed.cloneDeep(p));
+  const vec = ed.vectorOfTables([...old.map((p) => () => clone(p)), ...add.map((a) => () => a(ed))]);
   ed.link(field, vec);
   return ed.data;
 }

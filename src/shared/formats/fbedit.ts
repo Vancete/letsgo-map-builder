@@ -363,7 +363,7 @@ export function learnSchema(samples: Sample[], depth = 0): Schema {
     const classes = new Set(list.map((x) => x.cls));
     const only = (...c: string[]) => [...classes].every((x) => c.includes(x));
     const has = (c: string) => classes.has(c);
-    if (only('string')) schema.set(idx, { kind: 'string' });
+    if (has('string') && only('string', 'zero')) schema.set(idx, { kind: 'string' }); // (a zero: an empty string)
     else if (only('table')) schema.set(idx, { kind: 'table', schema: learnSchema(list.filter((x) => x.cls === 'table').map((x) => ({ ed: x.ed, pos: x.t })), depth + 1) });
     else if (has('vtables') && only('vtables', 'zero'))
       schema.set(idx, {

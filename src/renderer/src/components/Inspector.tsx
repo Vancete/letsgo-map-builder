@@ -2,7 +2,8 @@
 // properties when nothing is selected.
 import { useEffect, useState } from 'react';
 import { useEditor } from '../store';
-import { CATEGORY_LABELS, type MapObject } from '@shared/types';
+import { CATEGORY_LABELS, GRASS_ASSET, type MapObject } from '@shared/types';
+import { GrassPanel } from './GrassPanel';
 import { thumbUrl } from '../three/thumbs';
 
 type V3 = [number, number, number];
@@ -227,7 +228,9 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
         </div>
       </div>
 
-      {obj.asset && (
+      {obj.asset === GRASS_ASSET && <GrassPanel obj={obj} />}
+
+      {obj.asset && obj.asset !== GRASS_ASSET && (
         <div>
           <h3>Modelo</h3>
           {asset && thumbs.has(asset.id) && <img className="insp-thumb" src={thumbUrl(asset.id, thumbVersion)} />}

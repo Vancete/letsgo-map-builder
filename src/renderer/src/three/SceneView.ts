@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import type { MapDocument, MapGrid, MapObject } from '@shared/types';
+import { GRASS_ASSET, defaultGrass, grassRect, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
 import { getTemplate, placeholder } from './models';
 import type { SnapSettings, Tool } from '../store';
 
@@ -21,6 +21,7 @@ interface NodeInfo {
   node: THREE.Group;
   obj: MapObject;
   loaded: boolean;
+  grassKey?: string; // what a grass zone's tufts were laid out for
 }
 
 export class SceneView {
@@ -167,6 +168,10 @@ export class SceneView {
         info.node.scale.set(...o.scale);
       }
       info.node.name = o.name;
+      if (o.asset === GRASS_ASSET) {
+        info.node.rotation.set(0, 0, 0); // grass zones follow the grid's cells
+        this.layoutGrass(info);
+      }
     }
     // parents (after every node exists)
     for (const o of doc.objects) {
@@ -181,9 +186,52 @@ export class SceneView {
     this.setSelection(selection);
   }
 
+  // a grass zone: the game's tuft on each of its cells, over a translucent patch
+  private layoutGrass(info: NodeInfo) {
+    if (!this.doc) return;
+    const g = this.doc.grid;
+    const z = info.obj.grass ?? defaultGrass();
+    const p = info.node.position;
+    const r = grassRect(p.x - g.originX, p.z - g.originZ, z, g.cellSize);
+    const key = `${r.cx0},${r.cz0},${r.w},${r.d},${p.x},${p.z}`;
+    if (info.grassKey === key) return;
+    info.grassKey = key;
+    for (const c of [...info.node.children]) c.removeFromParent();
+    const x0 = g.originX + r.cx0 * g.cellSize - p.x;
+    const z0 = g.originZ + r.cz0 * g.cellSize - p.z;
+    const W = r.w * g.cellSize;
+    const D = r.d * g.cellSize;
+    const patch = new THREE.Mesh(
+      new THREE.PlaneGeometry(W, D).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: 0x3fa34d, transparent: true, opacity: 0.35, depthWrite: false }),
+    );
+    patch.position.set(x0 + W / 2, 3, z0 + D / 2);
+    patch.renderOrder = 1;
+    const edge = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(W, 4, D)),
+      new THREE.LineBasicMaterial({ color: 0x9cff8a }),
+    );
+    edge.position.copy(patch.position);
+    info.node.add(patch, edge);
+    getTemplate('bm.enc_grass01')
+      .then((t) => {
+        if (info.grassKey !== key) return;
+        for (let i = 0; i < r.w; i++)
+          for (let k = 0; k < r.d; k++) {
+            const tuft = t.clone();
+            tuft.position.set(x0 + (i + 0.5) * g.cellSize, 0, z0 + (k + 0.5) * g.cellSize);
+            info.node.add(tuft);
+          }
+        this.refreshSelBoxes();
+      })
+      .catch(() => {});
+    info.loaded = true;
+    this.refreshSelBoxes();
+  }
+
   private loadContent(info: NodeInfo) {
     const assetId = info.obj.asset;
-    if (!assetId) return;
+    if (!assetId || assetId === GRASS_ASSET) return;
     getTemplate(assetId)
       .then((t) => {
         if (!this.nodes.has(info.obj.id)) return;

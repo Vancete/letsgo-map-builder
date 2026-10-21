@@ -36,6 +36,8 @@ export function ExportDialog() {
   const hasSpawn = objects.some((o) => o.asset === 'lg.spawn');
   const hasExit = objects.some((o) => o.asset === 'lg.exit');
   const tiles = objects.filter((o) => o.asset?.startsWith('tile.')).length;
+  const grass = objects.filter((o) => o.asset === 'lg.grass' && o.visible);
+  const badGrass = grass.filter((o) => (o.grass?.wild.slots ?? []).reduce((n, s) => n + s.rate, 0) !== 100).length;
   const close = () => !busy && useUi.setState({ exportOpen: false });
 
   const run = async () => {
@@ -84,6 +86,13 @@ export function ExportDialog() {
             {hasExit ? '✔ Salida colocada' : '• Sin salida: se pone 3 casillas al sur de la llegada'}
             <br />
             {grid.width > 40 || grid.depth > 40 ? '⚠ La rejilla pasa de 40 × 40 casillas: el suelo base solo cubre 40 × 40' : '✔ Tamaño de la rejilla dentro del suelo base (40 × 40)'}
+            <br />
+            {grass.length ? `✔ ${grass.length} zonas de hierba con Pokémon salvajes` : '• Sin zonas de hierba (no habrá Pokémon salvajes)'}
+            {badGrass > 0 && (
+              <>
+                <br />⚠ {badGrass} zonas de hierba cuyas probabilidades no suman 100 %
+              </>
+            )}
             {tiles > 0 && (
               <>
                 <br />⚠ {tiles} baldosas generadas por el editor no se exportan todavía (usa suelos de las zonas del juego)

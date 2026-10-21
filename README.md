@@ -41,9 +41,12 @@ npm start          # ejecuta lo compilado
    - **Centro**, la vista 3D con gizmo de mover / rotar / escalar (W / E / R) y ajuste a la rejilla.
    - **Derecha**, el inspector: posición, rotación y escala numéricas (admite operaciones: `350+100`), la casilla de la
      rejilla en la que está el objeto y las propiedades del mapa.
-4. Coloca los marcadores de la categoría **Llegada y salida**: el *Punto de llegada* (la flecha: dónde aparece el
+4. Para Pokémon salvajes, coloca una **Zona de hierba alta** (categoría *Hierba*, la primera) y elige en el inspector su
+   tamaño en casillas, los niveles y qué Pokémon aparecen y con qué probabilidad (ver
+   [Zonas de hierba y Pokémon salvajes](#zonas-de-hierba-y-pokémon-salvajes)).
+5. Coloca los marcadores de la categoría **Llegada y salida**: el *Punto de llegada* (la flecha: dónde aparece el
    jugador) y la *Salida* (la baldosa de teletransporte que devuelve a Pueblo Paleta). Son opcionales.
-5. **Guardar** crea un `.lgmap`; **🎮 Exportar al juego** crea el mod (ver abajo).
+6. **Guardar** crea un `.lgmap`; **🎮 Exportar al juego** crea el mod (ver abajo).
 
 ### Controles
 
@@ -120,6 +123,34 @@ relativa a su padre.
 
 ![El teletransportador de Pueblo Paleta](docs/teleporter.png)
 
+## Zonas de hierba y Pokémon salvajes
+
+![Una zona de hierba en el editor: tamaño, niveles y tabla de Pokémon en el inspector](docs/editor-grass.png)
+
+Cada **Zona de hierba alta** del mapa es un rectángulo de casillas con su propia tabla: hasta 10 Pokémon (los 151 de
+Kanto, Meltan y Melmetal), la probabilidad de cada uno (deben sumar 100 %; **Repartir 100 %** lo iguala) y el rango de
+niveles. La misma tabla vale para Pikachu y Eevee.
+
+En el juego la zona se llena de hierba alta animada y los Pokémon aparecen y deambulan por ella, como en las rutas; al
+tocar uno empieza la captura:
+
+![Dos zonas de hierba en el juego: Charmander y Squirtle en una, Pikachu y Bulbasaur en la otra](docs/wild.png)
+![Un Charmander salvaje Nv. 9 de la segunda zona](docs/encounter.png)
+
+Cómo se construye (`src/shared/encounters.ts`):
+
+- **Una zona del juego por zona de hierba.** El juego tiene una tabla de salvajes por *zona* (un mapa se divide en
+  zonas; cada una con su forma, su lista de objetos, sus scripts y su tabla), así que cada zona de hierba se exporta como
+  una zona nueva del hueco (`<hueco>_g1`, `_g2`…): su forma es el rectángulo de hierba y la zona base del mapa cubre el
+  resto de casillas, sin solaparse. Se registra en `ZoneNameHashTable.tbl` y lleva sus scripts (`.amx`).
+- **La hierba** es un *parche de vegetación* (lista 5 del placement de la zona): una posición, una forma `.gfbcol` de
+  casillas alrededor de ella y el modelo de mata (`enc_grass01.gfbmdl`), con la que el juego rellena la forma. Así son
+  todas las hierbas altas de las rutas del juego.
+- **La tabla** se añade a `bin/field/param/encount/encount_data_p.bin` (Pikachu) y `_e.bin` (Eevee), copiando la de la
+  Ruta 1 (cuántos aparecen a la vez, cada cuánto) y cambiando huecos y niveles. Formato de una tabla (FlatBuffers):
+  campo 0 = hash de la zona; hierba: 4 máximo a la vez, 5 intervalo, 7/8 nivel mínimo/máximo, 10 los 10 huecos
+  `{0 probabilidad %, 1 especie}`; agua 12–18 y cielo 35–41 con la misma forma (vaciados).
+
 ### Cómo funciona
 
 El juego no tiene un formato de mapa abierto: el mod **sustituye uno de sus mapas sin usar** por el tuyo, con los mismos
@@ -134,6 +165,9 @@ juego las tiene registradas (con su modelo, colisiones, terreno y placement) per
 | `bin/field/param/terrain/<hueco>/terrain_data.bin` | el bloque de terreno del hueco, con el tamaño del mapa |
 | `bin/archive/field/placement.gfpak` | el placement del hueco sin los personajes de prueba y con la baldosa de vuelta; el de `area02` con el teletransportador en Pueblo Paleta |
 | `bin/archive/script_amx.gfpak` | los scripts que toda zona necesita (`<zona>.amx`, `init_<zona>.amx`); las salas de prueba no los tienen y sin ellos el juego se cuelga al entrar |
+| `bin/field/model/<hueco>/<hueco>_gN_zone/_enc.gfbcol` | forma de cada zona de hierba y de su parche de hierba |
+| `bin/field/param/encount/encount_data_p/_e.bin` | las tablas de Pokémon salvajes de las zonas de hierba |
+| `bin/field/param/placement/table/ZoneNameHashTable.tbl` | los nombres de las zonas nuevas |
 | `bin/lgmap/<nombre>.lgmap` | el mapa del editor (el juego no lo lee; sirve para volver a abrirlo) |
 
 El suelo del hueco (una pradera de 40 × 40 casillas) se queda debajo del mapa: la rejilla del editor empieza en su
@@ -161,6 +195,9 @@ Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
   runtime) se vio que pedía `bin/script/amx/test_chr01.amx` y luego `init_test_chr01.amx`, que no existen. El script
   vacío que comparten muchas zonas sirve para los dos.
 - **`terrain_data.bin`** lista los bloques de terreno de cada mapa: caja, modelo, animación, colisión de pared y de suelo.
+- **Esquemas aprendidos de muchas muestras**: copiar las zonas aprendiendo solo de las del hueco (1–3 zonas) clasificaba
+  mal campos y corrompía la primera zona de hierba al añadir la segunda; ahora el esquema de zona se aprende de todas las
+  zonas de todos los mapas. Los strings vacíos (longitud 0) cuentan como strings.
 - **Materiales**: los campos 8 y 10 de un material son su número dentro del modelo (su shader en la lista de shaders);
   al fusionar materiales de varios modelos hay que reescribirlos o el juego lee fuera de la lista.
 - Las pruebas se hicieron con las partidas guionizadas de Let's Go Recomp (`tools/scenario_shot.sh`, `mod = <nombre>` en
@@ -173,15 +210,18 @@ Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
 - Las baldosas de suelo generadas por el editor no se exportan (no tienen material del juego); los suelos recortados de
   las zonas del juego sí.
 - Colisiones simplificadas: suelo plano a altura 0 y cajas; no hay desniveles transitables ni saltos.
-- Las zonas completas y los objetos animados (puertas) se exportan como geometría fija; la hierba alta no tiene
-  encuentros.
+- Las zonas completas y los objetos animados (puertas) se exportan como geometría fija. Las matas de hierba alta sueltas
+  del catálogo también: para encuentros hay que usar una *Zona de hierba alta*.
+- Las zonas de hierba son rectángulos alineados a la rejilla (no giran) y su tabla es la misma en Pikachu y Eevee; no
+  hay Pokémon en el agua ni voladores.
 - Las puertas de los edificios no llevan a ningún sitio.
 
 ## Pendiente
 
 - Elegir en el editor el mapa y el sitio del teletransportador de entrada.
 - Exportar las baldosas de suelo (con el material de suelo del juego) y colisiones de suelo con alturas.
-- Encuentros en la hierba alta, NPCs y objetos del juego (listas de placement).
+- Pokémon en el agua y voladores (las mismas tablas tienen esos bloques), tablas distintas para Pikachu y Eevee.
+- NPCs y objetos del juego (otras listas de placement).
 - Los materiales del visor se aproximan con iluminación Lambert; los shaders de terreno que mezclan varias texturas
   usan solo la principal.
 
@@ -193,6 +233,8 @@ src/shared/extract.ts construcción del catálogo (modelos LGM + texturas PNG en
 src/shared/lgm.ts     formato de modelo de la caché
 src/shared/placement.ts  placement del juego: warps, teletransportadores, listas de objetos
 src/shared/mapbuild.ts   exportación al juego (modelo fusionado, pak, colisiones, terreno, placement, scripts)
+src/shared/encounters.ts zonas de hierba: zonas nuevas, parches de vegetación, tablas de salvajes, nombres de zona
+src/shared/pokemon.ts    especies de Let's Go
 src/main/             proceso principal de Electron (ajustes, catálogo en un worker, archivos, mods)
 src/renderer/         interfaz (React + three.js): store con deshacer, vista 3D, miniaturas, paneles
 scripts/              utilidades de desarrollo: extract-cli, build-map-mod (exportar un .lgmap sin la interfaz),

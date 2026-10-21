@@ -616,3 +616,19 @@ textarea:focus {
   background: #4a2229;
   border-color: var(--danger);
 }
+
+/* grass zone slots */
+.slots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.slot {
+  display: grid;
+  grid-template-columns: 1fr 58px auto auto;
+  gap: 4px;
+  align-items: center;
+}
+.slot select {
+  min-width: 0;
+}

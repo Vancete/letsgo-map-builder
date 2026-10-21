@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { emptyMap, type AssetEntry, type Catalog, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
+import { GRASS_ASSET, defaultGrass, emptyMap, type AssetEntry, type Catalog, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
 
 export type Tool = 'translate' | 'rotate' | 'scale';
 
@@ -144,6 +144,7 @@ export const useEditor = create<EditorState>((set, get) => {
         scale: [1, 1, 1],
         visible: true,
         locked: false,
+        ...(assetId === GRASS_ASSET ? { grass: defaultGrass() } : {}),
       };
       apply(withObjects([...s.doc.objects, obj]));
       set({ selection: [id] });
