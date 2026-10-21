@@ -266,17 +266,6 @@
    "locked": false
   },
   {
-   "id": "omvi3cevwu45az",
-   "name": "kairiki_rock",
-   "asset": "bm.kairiki_rock",
-   "parent": null,
-   "position": [1250, 0, 0],
-   "rotation": [0, 0, 0],
-   "scale": [1, 1, 1],
-   "visible": true,
-   "locked": false
-  },
-  {
    "id": "ograss1",
    "name": "Zona de hierba",
    "asset": "lg.grass",
@@ -310,7 +299,7 @@
    "name": "Zona de hierba 2",
    "asset": "lg.grass",
    "parent": null,
-   "position": [-1150, 0, 1050],
+   "position": [150, 0, 1150],
    "rotation": [0, 0, 0],
    "scale": [1, 1, 1],
    "visible": true,
@@ -333,6 +322,776 @@
      ]
     }
    }
+  },
+  {
+   "id": "omvi7jqs413kyy",
+   "name": "Elevación",
+   "asset": "lg.terrain",
+   "parent": null,
+   "position": [1300, 0, -150],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false,
+   "terrain": {
+    "w": 5,
+    "d": 4,
+    "height": 50,
+    "top": "grass01_com",
+    "side": "cliff04_com",
+    "edges": {
+     "n": "wall",
+     "e": "wall",
+     "s": "ledge",
+     "w": "wall"
+    }
+   }
+  },
+  {
+   "id": "omvi7jqs723lzs",
+   "name": "Escaleras",
+   "asset": "lg.stairs",
+   "parent": null,
+   "position": [950, 0, -150],
+   "rotation": [0, 270, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false,
+   "stairs": {
+    "w": 1,
+    "length": 2,
+    "height": 50,
+    "texture": "stairs01_03_area04"
+   }
+  },
+  {
+   "id": "omvi7jqs937p67",
+   "name": "Cartel",
+   "asset": "lg.sign",
+   "parent": null,
+   "position": [-1450, 0, 650],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false,
+   "sign": {
+    "text": "¡Bienvenido a Pueblo Prueba!\nUn mapa hecho con Let's Go Map Builder.\n\nAl este hay un desnivel: se baja de un salto\ny se sube por las escaleras."
+   }
+  },
+  {
+   "id": "omvi7jqs94k5ta",
+   "name": "Suelo (grass01_com)",
+   "asset": null,
+   "parent": null,
+   "position": [0, 0, 0],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": true
+  },
+  {
+   "id": "omvi7jqs95294l",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1400, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs96903x",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1400, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs973lfz",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1400, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs98mr99",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1400, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9961gl",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1400, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9ac0rr",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1400, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9bmo1w",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1400, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9cumak",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1400, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9d2fs1",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1000, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9exsd1",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1000, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9fki2j",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1000, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9g42fi",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1000, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9hlc4d",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1000, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9iuf1b",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1000, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9juob7",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1000, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9kjxu7",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-1000, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9liwfu",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-600, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9mz8d0",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-600, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9n1ygy",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-600, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9ov7cv",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-600, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9pznv4",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-600, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9qk3du",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-600, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9rdbr4",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-600, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9siw1p",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-600, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9ts3en",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-200, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9uj3pu",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-200, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9v0db0",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-200, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9w6jie",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-200, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9xhgck",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-200, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9yssvl",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-200, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9zk0c8",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-200, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs910jyov",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [-200, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs911s7i6",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [200, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9129yo7",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [200, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs913sk6o",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [200, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs914benw",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [200, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9153lzi",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [200, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9160r6q",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [200, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs917gxzj",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [200, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs9187i9c",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [200, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs919lfmw",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [600, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91anwaa",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [600, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91bdycu",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [600, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91cnckb",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [600, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91d8xh7",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [600, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91e7u5j",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [600, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91fiq28",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [600, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91gv5w4",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [600, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91h0h14",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1000, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91ijprv",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1000, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91j785y",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1000, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91k4m95",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1000, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91li2dw",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1000, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91m7avx",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1000, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91ngme3",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1000, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91opm7g",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1000, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91pu8am",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1400, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91q82xb",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1400, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91ro28b",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1400, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91se2dt",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1400, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91t4lbt",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1400, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91un6y6",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1400, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91vbm4w",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1400, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi7jqs91w6cuw",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": "omvi7jqs94k5ta",
+   "position": [1400, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
   }
  ],
  "assets": {
@@ -470,16 +1229,6 @@
     "fileIndex": 548
    }
   },
-  "bm.kairiki_rock": {
-   "name": "kairiki_rock",
-   "category": "rock",
-   "source": {
-    "kind": "model",
-    "pak": "bin/archive/field/buildmodel.gfpak",
-    "path": "bin/field/model/buildmodel/kairiki_rock.gfbmdl",
-    "fileIndex": 567
-   }
-  },
   "lg.grass": {
    "name": "Zona de hierba alta (Pokémon salvajes)",
    "category": "grass",
@@ -487,6 +1236,43 @@
     "kind": "marker",
     "marker": "grass"
    }
+  },
+  "lg.terrain": {
+   "name": "Elevación (desnivel, saltos)",
+   "category": "ledge",
+   "source": {
+    "kind": "marker",
+    "marker": "terrain"
+   }
+  },
+  "lg.stairs": {
+   "name": "Escaleras",
+   "category": "ledge",
+   "source": {
+    "kind": "marker",
+    "marker": "stairs"
+   }
+  },
+  "lg.sign": {
+   "name": "Cartel con texto",
+   "category": "street",
+   "source": {
+    "kind": "marker",
+    "marker": "sign"
+   }
+  },
+  "tile.grass01_com.4": {
+   "name": "grass01_com 4x4",
+   "category": "ground",
+   "source": {
+    "kind": "tile",
+    "texture": "grass01_com",
+    "cells": 4
+   }
   }
+ },
+ "border": {
+  "texture": "grass01_com",
+  "cells": 10
  }
 }

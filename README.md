@@ -30,7 +30,8 @@ npm start          # ejecuta lo compilado
    `extracted/romfs.bin`), una carpeta `romfs` extraída o el propio `romfs.bin`. Se detectan solas las instalaciones
    habituales.
 2. Se extrae el catálogo (≈30 s) y se generan las miniaturas de los ~3000 objetos (≈1 min, en segundo plano).
-   **🖼 Regenerar miniaturas** las vuelve a crear; **↻ Catálogo** vuelve a extraerlo todo.
+   **Catálogo › Regenerar miniaturas** las vuelve a crear; **Catálogo › Reconstruir el catálogo** vuelve a extraerlo
+   todo (se hace solo cuando cambia la versión del catálogo).
 3. Monta el mapa:
    - **Abajo**, el catálogo por categorías (suelo, árboles, hierba, flores, saltos y desniveles, rocas, vallas,
      mobiliario, Centros Pokémon, tiendas, gimnasios, edificios, puertas, objetos de juego, zonas completas), con
@@ -44,9 +45,19 @@ npm start          # ejecuta lo compilado
 4. Para Pokémon salvajes, coloca una **Zona de hierba alta** (categoría *Hierba*, la primera) y elige en el inspector su
    tamaño en casillas, los niveles y qué Pokémon aparecen y con qué probabilidad (ver
    [Zonas de hierba y Pokémon salvajes](#zonas-de-hierba-y-pokémon-salvajes)).
-5. Coloca los marcadores de la categoría **Llegada y salida**: el *Punto de llegada* (la flecha: dónde aparece el
-   jugador) y la *Salida* (la baldosa de teletransporte que devuelve a Pueblo Paleta). Son opcionales.
-6. **Guardar** crea un `.lgmap`; **🎮 Exportar al juego** crea el mod (ver abajo).
+5. Para el suelo, las **baldosas** de la categoría *Suelo* se exportan al juego; **Editar › Rellenar el suelo** (o
+   *Rellenar* en el inspector del mapa) cubre la rejilla con baldosas de 4 × 4. Para desniveles, saltos y escaleras usa
+   **Elevación** y **Escaleras** (categoría *Saltos y desniveles*), y para un cartel que se lee con A, **Cartel con texto**
+   (categoría *Mobiliario*). Ver [Desniveles, saltos y escaleras](#desniveles-saltos-y-escaleras) y [Carteles](#carteles).
+6. Coloca los marcadores de la categoría **Llegada y salida**: el *Punto de llegada* (la flecha: dónde aparece el
+   jugador) y la *Salida* (la baldosa de teletransporte que devuelve a Pueblo Paleta). Son opcionales; no pongas la
+   llegada pegada a la salida.
+7. **Archivo › Guardar** crea un `.lgmap`; **🎮 Exportar al juego** (o Ctrl+E) crea el mod (ver abajo).
+
+La barra de menús (**Archivo, Editar, Ver, Catálogo, Ayuda**) tiene todas las órdenes con su atajo; la barra de
+herramientas solo las de uso continuo (deshacer, mover/rotar/escalar, ajuste a la rejilla, vista y exportar).
+
+![El editor con la barra de menús, una elevación con su acantilado y unas escaleras](docs/editor-terrain.png)
 
 ### Controles
 
@@ -62,6 +73,7 @@ npm start          # ejecuta lo compilado
 | Ctrl+D, Ctrl+G, Supr | duplicar, agrupar, eliminar |
 | Ctrl+Z / Ctrl+Y | deshacer / rehacer |
 | Ctrl+N / O / S / Mayús+S | nuevo / abrir / guardar / guardar como |
+| Ctrl+E | exportar al juego |
 
 ## La rejilla
 
@@ -107,6 +119,11 @@ JSON, unidades del juego (Y hacia arriba, 1 casilla = 100), rotaciones en grados
 }
 ```
 
+Además, el mapa puede llevar `slotGround` (la pradera del hueco bajo el mapa: `true`/`false`; sin poner, solo si el mapa
+no tiene baldosas) y `border` (`{ "texture", "cells" }`: suelo alrededor del mapa), y los objetos del editor sus
+ajustes: `grass` (zona de hierba), `terrain` (`w`, `d`, `height`, `top`, `side`, `edges: { n, e, s, w: "wall" | "ledge" }`),
+`stairs` (`w`, `length`, `height`, `texture`) y `sign` (`{ "text" }`).
+
 `source.kind`: `model` (un modelo entero de un `.gfpak`, con su ruta RomFS si se conoce), `zonePiece` (una instancia de
 un grupo de un modelo de zona, con el punto de su base en coordenadas de la zona), `zone` (zona completa) o `tile`
 (baldosa generada con una textura del juego) o `marker` (llegada y salida). Los objetos con `asset: null` son grupos; la posición de un hijo es
@@ -119,9 +136,75 @@ relativa a su padre.
 2. En el lanzador de Let's Go Recomp, pestaña **Mods**, activa el mod (y desactiva otros mods de mapas o que cambien
    `placement.gfpak` / `script_amx.gfpak`).
 3. Juega y ve a **Pueblo Paleta**: en el camino entre las casas del norte hay un teletransportador nuevo (la baldosa del
-   gimnasio de Ciudad Azafrán). Písalo para entrar en tu mapa; la baldosa de salida del mapa te devuelve a Paleta.
+   gimnasio de Ciudad Azafrán). Písalo para entrar en tu mapa, con el efecto de teletransporte del juego; la baldosa de
+   salida del mapa te devuelve a Paleta igual.
+
+![El teletransporte: el jugador sube en un haz de luz y aparece en el mapa](docs/teleport.png)
+
+Un mapa exportado ahora (suelo de baldosas, hierba alta, árboles con sombra, un cartel):
+
+![El mapa de ejemplo exportado con esta versión](docs/ingame-v2.png)
 
 ![El teletransportador de Pueblo Paleta](docs/teleporter.png)
+
+## Desniveles, saltos y escaleras
+
+![Salto: el jugador baja de una elevación saltando](docs/ledge.png)
+
+- **Elevación**: un rectángulo de casillas elevado `Altura` unidades sobre la altura del objeto (en el juego los saltos
+  miden 50), con una textura arriba y otra en los lados. Cada borde (norte, este, sur, oeste) es un **acantilado**, que no
+  se pasa, o un **salto**, por el que el jugador baja saltando pero no sube. Varias elevaciones pueden tocarse; manda la
+  más alta en cada casilla.
+- **Escaleras**: `Ancho` × `Largo` casillas que suben `Altura` hacia donde mira el objeto (0°: norte; gíralo con Q).
+  Ponlas con el extremo alto contra el borde de una elevación de su misma altura.
+- Lo que pongas encima (el punto de llegada, la salida, zonas de hierba) se coloca a la altura del terreno.
+
+![Unas escaleras en el juego, y un mapa entero subido 300 unidades con su hierba alta](docs/stairs-tiles.png)
+
+Cómo lo hace el juego y cómo se exporta (`src/shared/terrain.ts`; el editor dibuja exactamente lo mismo que se exporta):
+
+- El **suelo** (`<hueco>_floor.gfbcol`) es una sola malla a todas las alturas: en la Ruta 1 las terrazas están a 0, 50,
+  100... con caras verticales donde cambia la altura. El editor calcula una altura por casilla y escribe los rectángulos
+  de cada altura, las rampas de las escaleras y esas caras verticales.
+- Los **acantilados** son paredes (`col_wall`) en el borde de la parte alta.
+- Un **salto** no es una pared normal: es una caja cerrada y fina de paredes **`col_jump`**, una cara en la línea del
+  borde y otra 25 unidades hacia la parte baja (Ruta 1: z = −815 y −790). El juego deja atravesarla solo hacia abajo y
+  con la animación del salto.
+- En los archivos de pared, el campo 0 de cada polígono es el índice de su nombre en la lista de nombres del archivo
+  (`col_wall`, `col_sky`, `col_water`, `col_safety`, `col_jump`...); en los de suelo igual (`col_grass`, `col_ground`,
+  `col_sea`: el tipo de suelo).
+
+## Carteles
+
+![Un cartel del mapa leído en el juego](docs/sign.png)
+
+El **Cartel con texto** usa el cartel de Pueblo Paleta; su texto se escribe en el inspector. En el juego, al pulsar A
+delante (por su cara delantera) aparece la ventana con el texto: dos líneas por ventana, las siguientes van apareciendo,
+y una línea en blanco empieza una ventana nueva. Hasta 8 carteles por mapa.
+
+Cómo funciona (`src/shared/signs.ts`):
+
+- La **lista 17** del placement de una zona son las cosas que se inspeccionan con A: posición, una caja que hay que
+  encarar (80 × 100 × 50 en Paleta, girada hacia el lado desde el que se lee) y, en el campo 11 de la transformada, el
+  **hash de un evento de script**. El jugador tiene que poder entrar en esa caja: la pared del cartel es más fina que el
+  modelo (con la caja del modelo, de 69 de fondo, no se llegaba).
+- `bin/script/param/script_id/script_id_record.bin` registra **cada evento** con el script que lo atiende y sus mensajes
+  (`0x59892b61…` → `bin/script/amx/town001.amx`, `script/town001.dat`). Al entrar en un mapa el juego carga los mensajes
+  de los eventos de sus zonas; al inspeccionar, ejecuta el script con el hash del evento en su variable global 0.
+- Los scripts son **AMX (Pawn) de 64 bits en codificación compacta** (cada celda en grupos de 7 bits, el más
+  significativo primero, el bit alto en todos los bytes menos el último y el bit 6 del primero como signo), con opcodes
+  "empaquetados" (operando en los 32 bits altos) y nombres de nativas por hash (`h = h·0x83 ^ byte`, nombres en claro en
+  `.rodata` del ejecutable: `MsgWin_`, `GetTargetFieldObjectID`, `ABKeyWait_`...). La función principal de
+  `town001.amx` hace un `switch` sobre el evento; cada caso llama a una función que pasa la etiqueta del mensaje
+  (FNV-1a 64 de `msg_town001_kanban_01`) a otra común que gira al jugador hacia el cartel y abre la ventana.
+- El mod usa ese script con dos parches del mismo tamaño (no se mueve nada, así que todos los saltos relativos siguen
+  valiendo): la tabla del `switch` lleva los eventos de los carteles a una función, y esa función muestra el mensaje cuya
+  etiqueta es **el propio hash del evento** (`LOAD_P_PRI 0` en vez de una constante).
+- Los mensajes van en `bin/message/<idioma>/script/<hueco>.dat` y `.tbl` (los de los huecos de prueba existen y están
+  registrados en `bin/message/asset.tbl`), en los 10 idiomas. Formato: una sección; por línea, desplazamiento, longitud
+  y flags; el texto en UTF-16 cifrado por línea (clave 0x7C89 + 0x2983·línea, XOR por carácter y la clave rotada 3 bits a
+  la izquierda). Salto de línea `0x000A`; `0x0010 0x0001 0xBE00` antes del salto desplaza una línea y `0xBE01` empieza
+  ventana nueva. El `.tbl` (AHTB) lista las etiquetas y termina en `msg_<zona>_max`.
 
 ## Zonas de hierba y Pokémon salvajes
 
@@ -134,7 +217,7 @@ niveles. La misma tabla vale para Pikachu y Eevee.
 En el juego la zona se llena de hierba alta animada y los Pokémon aparecen y deambulan por ella, como en las rutas; al
 tocar uno empieza la captura:
 
-![Dos zonas de hierba en el juego: Charmander y Squirtle en una, Pikachu y Bulbasaur en la otra](docs/wild.png)
+![Antes y ahora: la hierba alta como la del juego y las sombras de los árboles suaves](docs/before-after.png)
 ![Un Charmander salvaje Nv. 9 de la segunda zona](docs/encounter.png)
 
 Cómo se construye (`src/shared/encounters.ts`):
@@ -145,7 +228,9 @@ Cómo se construye (`src/shared/encounters.ts`):
   resto de casillas, sin solaparse. Se registra en `ZoneNameHashTable.tbl` y lleva sus scripts (`.amx`).
 - **La hierba** es un *parche de vegetación* (lista 5 del placement de la zona): una posición, una forma `.gfbcol` de
   casillas alrededor de ella y el modelo de mata (`enc_grass01.gfbmdl`), con la que el juego rellena la forma. Así son
-  todas las hierbas altas de las rutas del juego.
+  todas las hierbas altas de las rutas del juego. Las 75 formas `_enc*.gfbcol` del juego llevan, además de la posición,
+  un **color por vértice** (atributo `{tipo 7, formato 3, 4}`: cuatro bytes, blanco en casi todas) que el juego lee para
+  cada mata; sin él leía basura y las matas salían de tamaños y tonos al azar (la captura de la izquierda).
 - **La tabla** se añade a `bin/field/param/encount/encount_data_p.bin` (Pikachu) y `_e.bin` (Eevee), copiando la de la
   Ruta 1 (cuántos aparecen a la vez, cada cuánto) y cambiando huecos y niveles. Formato de una tabla (FlatBuffers):
   campo 0 = hash de la zona; hierba: 4 máximo a la vez, 5 intervalo, 7/8 nivel mínimo/máximo, 10 los 10 huecos
@@ -161,17 +246,24 @@ juego las tiene registradas (con su modelo, colisiones, terreno y placement) per
 |---|---|
 | `bin/field/model/<hueco>/<hueco>.gfbmdl` | el modelo del mapa: los triángulos de cada objeto, tomados de los datos de vértice originales del juego (no de la caché del editor) y movidos a su sitio; todo en un modelo, con los materiales originales |
 | `bin/archive/field/<hueco>.gfpak` | los recursos del hueco más los shaders (`<material>.bnsh_vsh/.bnsh_fsh`) y texturas (`<textura>.bntx`) de cada material, copiados de las paks de donde vienen las piezas |
-| `bin/field/model/<hueco>/<hueco>_floor/_wall/_zone.gfbcol` | colisiones: el suelo, paredes alrededor de la rejilla y cajas alrededor de los objetos sólidos (edificios, árboles, rocas, vallas, mobiliario), y la forma de la zona |
-| `bin/field/param/terrain/<hueco>/terrain_data.bin` | el bloque de terreno del hueco, con el tamaño del mapa |
-| `bin/archive/field/placement.gfpak` | el placement del hueco sin los personajes de prueba y con la baldosa de vuelta; el de `area02` con el teletransportador en Pueblo Paleta |
-| `bin/archive/script_amx.gfpak` | los scripts que toda zona necesita (`<zona>.amx`, `init_<zona>.amx`); las salas de prueba no los tienen y sin ellos el juego se cuelga al entrar |
+| `bin/field/model/<hueco>/<hueco>_floor/_wall/_zone.gfbcol` | colisiones: el suelo a todas las alturas, paredes alrededor de la rejilla, cajas alrededor de los objetos sólidos (edificios, árboles, rocas, vallas, mobiliario), acantilados y saltos, y la forma de la zona |
+| `bin/field/param/terrain/<hueco>/terrain_data.bin` | el bloque de terreno del hueco, con el tamaño del mapa (y altura) |
+| `bin/archive/field/placement.gfpak` | el placement del hueco (ajustes de un mapa exterior, sin los personajes de prueba, con la baldosa de vuelta y los carteles); el de `area02` con el teletransportador en Pueblo Paleta |
+| `bin/archive/script_amx.gfpak` | los scripts que toda zona necesita (`<zona>.amx`, `init_<zona>.amx`); las salas de prueba no los tienen y sin ellos el juego se cuelga al entrar. Con carteles, el de la zona es el que los atiende |
+| `bin/script/param/script_id/script_id_record.bin` | (con carteles) sus eventos, con su script y sus mensajes |
+| `bin/message/<idioma>/script/<hueco>.dat/.tbl` | (con carteles) sus textos |
 | `bin/field/model/<hueco>/<hueco>_gN_zone/_enc.gfbcol` | forma de cada zona de hierba y de su parche de hierba |
 | `bin/field/param/encount/encount_data_p/_e.bin` | las tablas de Pokémon salvajes de las zonas de hierba |
 | `bin/field/param/placement/table/ZoneNameHashTable.tbl` | los nombres de las zonas nuevas |
 | `bin/lgmap/<nombre>.lgmap` | el mapa del editor (el juego no lo lee; sirve para volver a abrirlo) |
 
-El suelo del hueco (una pradera de 40 × 40 casillas) se queda debajo del mapa: la rejilla del editor empieza en su
-esquina, así que el mapa debería caber en 40 × 40 casillas.
+**El suelo.** Las baldosas del editor se exportan dibujadas con un material de suelo del juego (`FieldObjectShader`, el
+de los adoquines de la Ruta 1, `roadstone01_com` en `area02/road001_00`) cuya textura se cambia por la de la baldosa.
+El hueco trae su propio suelo, una pradera de pruebas de 40 × 40 casillas con las UV en islas (se le notan franjas): por
+defecto solo se pone bajo mapas sin baldosas (*Pradera del hueco* en el inspector del mapa). Más allá del borde del mapa
+el juego no dibuja nada, solo su fondo: **no es un suelo de la sala de pruebas** (el único modelo que carga el mapa es el
+nuestro, comprobado con el registro de archivos abiertos, y subir el mapa entero 300 unidades no cambia ese fondo), así
+que bajar o subir el mapa no lo tapa; para eso está el **Borde exterior** (un anillo de suelo alrededor, solo visual).
 
 Sin la interfaz: `node scripts/build-map-mod.ts <mapa.lgmap> <caché del catálogo> <carpeta del juego> <carpeta mods> [nombre]`.
 
@@ -198,6 +290,21 @@ Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
 - **Esquemas aprendidos de muchas muestras**: copiar las zonas aprendiendo solo de las del hueco (1–3 zonas) clasificaba
   mal campos y corrompía la primera zona de hierba al añadir la segunda; ahora el esquema de zona se aprende de todas las
   zonas de todos los mapas. Los strings vacíos (longitud 0) cuentan como strings.
+- **Sombras pixeladas**: los campos 13..18 de la raíz del placement no son los límites del mapa sino el volumen de la
+  sombra alrededor de la cámara (area02: −1536, −1024, −1536 .. 1536, 1024, 512; interiores −1024..768). El exportador
+  los llenaba con el tamaño del mapa y estiraba el mapa de sombras sobre todo él. Ahora la raíz del hueco se reescribe con
+  la forma y los valores de la de `area02` (campo 6 = exterior, 7..12 iluminación y niebla de exterior, 13..18, 23/24),
+  conservando su nombre y sus hijos.
+- **Sombras falsas**: los árboles y otras piezas proyectan su sombra con mallas invisibles (`FieldShadowOnlyShader`) que
+  el catálogo quita de las piezas; al exportar se recuperan las de la misma familia que caen dentro de la caja de la pieza.
+- **Campos a 0**: las tablas de FlatBuffers omiten los campos con su valor por defecto, así que muchas transformadas del
+  juego no tienen Y (o X, o Z). Al copiar una plantilla hay que **añadir** el campo (`cloneTable` con campos extra), no
+  solo escribirlo: la plantilla de parche de hierba no tenía Y y, con el mapa subido, la hierba se quedaba a altura 0.
+- **Teletransportadores**: los de la lista 25 pueden llevar a otro mapa (los de `t009r02` y `r010r01` lo hacen); los del
+  gimnasio de Azafrán tienen el campo 10 = 1, que los deja dentro del mismo mapa. Usando como plantilla uno sin ese campo
+  se cambia de mapa con el efecto de teletransporte; antes se usaban warps de la lista 4 (sin efecto).
+- **Llegada pegada a la salida**: con el punto de llegada al lado de la baldosa de salida, el teletransportador de
+  Paleta no llevaba al mapa.
 - **Materiales**: los campos 8 y 10 de un material son su número dentro del modelo (su shader en la lista de shaders);
   al fusionar materiales de varios modelos hay que reescribirlos o el juego lee fuera de la lista.
 - Las pruebas se hicieron con las partidas guionizadas de Let's Go Recomp (`tools/scenario_shot.sh`, `mod = <nombre>` en
@@ -206,10 +313,10 @@ Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
 ### Limitaciones
 
 - Solo se llega desde Pueblo Paleta (posición fija del teletransportador) y solo un mod de mapa activo a la vez: el mod
-  reemplaza `placement.gfpak` y `script_amx.gfpak` enteros.
-- Las baldosas de suelo generadas por el editor no se exportan (no tienen material del juego); los suelos recortados de
-  las zonas del juego sí.
-- Colisiones simplificadas: suelo plano a altura 0 y cajas; no hay desniveles transitables ni saltos.
+  reemplaza `placement.gfpak` y `script_amx.gfpak` enteros (y, con carteles, `script_id_record.bin`).
+- Las elevaciones y escaleras van alineadas a la rejilla; las escaleras suben en línea recta. Las texturas de los lados y
+  las escaleras usan un material de objeto, sin la mezcla de hierba en el borde de los acantilados del juego.
+- Los carteles responden en la zona base del mapa (no se ha probado uno dentro de una zona de hierba); hasta 8.
 - Las zonas completas y los objetos animados (puertas) se exportan como geometría fija. Las matas de hierba alta sueltas
   del catálogo también: para encuentros hay que usar una *Zona de hierba alta*.
 - Las zonas de hierba son rectángulos alineados a la rejilla (no giran) y su tabla es la misma en Pikachu y Eevee; no
@@ -219,7 +326,8 @@ Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
 ## Pendiente
 
 - Elegir en el editor el mapa y el sitio del teletransportador de entrada.
-- Exportar las baldosas de suelo (con el material de suelo del juego) y colisiones de suelo con alturas.
+- Bordes de acantilado con la hierba del juego (su `FieldCliffShader01`), rampas y escaleras en curva.
+- Carteles con otros modelos y NPCs que hablan (la misma vía: lista de personajes + evento + script).
 - Pokémon en el agua y voladores (las mismas tablas tienen esos bloques), tablas distintas para Pikachu y Eevee.
 - NPCs y objetos del juego (otras listas de placement).
 - Los materiales del visor se aproximan con iluminación Lambert; los shaders de terreno que mezclan varias texturas
@@ -233,12 +341,16 @@ src/shared/extract.ts construcción del catálogo (modelos LGM + texturas PNG en
 src/shared/lgm.ts     formato de modelo de la caché
 src/shared/placement.ts  placement del juego: warps, teletransportadores, listas de objetos
 src/shared/mapbuild.ts   exportación al juego (modelo fusionado, pak, colisiones, terreno, placement, scripts)
+src/shared/terrain.ts    alturas por casilla: suelo, acantilados, saltos, escaleras y sus superficies
+src/shared/collision.ts  archivos .gfbcol (nombres por polígono, color por vértice)
+src/shared/signs.ts      carteles: AMX compacto, parche del script, mensajes cifrados, registro de eventos
 src/shared/encounters.ts zonas de hierba: zonas nuevas, parches de vegetación, tablas de salvajes, nombres de zona
 src/shared/pokemon.ts    especies de Let's Go
 src/main/             proceso principal de Electron (ajustes, catálogo en un worker, archivos, mods)
 src/renderer/         interfaz (React + three.js): store con deshacer, vista 3D, miniaturas, paneles
 scripts/              utilidades de desarrollo: extract-cli, build-map-mod (exportar un .lgmap sin la interfaz),
-                      pakinfo, pakhash, fbdump, schema, warps, debugtable, texdump, cdp (pruebas automáticas)
+                      pakinfo, pakhash, pakextract, fbdump, coldump, listdump, mdlinfo, meshattrs, rootfields, schema,
+                      warps, debugtable, texdump, cdp (pruebas automáticas)
 ```
 
 La caché vive en `%APPDATA%/letsgo-map-builder/library`.
