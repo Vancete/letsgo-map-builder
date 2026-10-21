@@ -869,7 +869,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
 
   // ---- placement: the slot emptied, teleporters both ways
   const ppak = src.pak('bin/archive/field/placement.gfpak');
-  const tpl = new Templates(ppak.read(ppak.byPath(placementPath('t011gym'))!));
+  const tpl = new Templates(ppak.read(ppak.byPath(placementPath('t011gym'))!), ppak.read(ppak.byPath(placementPath('t009r02'))!));
   const pentries = ppak.files.map((f) => {
     let data = ppak.read(f);
     if (f.pathHash === fnv1a64(placementPath(slot))) {

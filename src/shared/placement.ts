@@ -174,10 +174,12 @@ export interface TeleporterSpec {
 export class Templates {
   readonly ed: FBEditor;
   readonly object: number; // list 2 element: warp01.gfbmdl
+  readonly padEd: FBEditor;
   readonly pad: number; // list 25 element
 
-  // the Saffron Gym's placement (t011gym)
-  constructor(gymFile: Uint8Array) {
+  // the warp tile's model from the Saffron Gym's placement (t011gym); the pad from a map whose pad leads to another
+  // map (t009r02's leads to area02: unlike the gym's, it has no field 10 = 1, which keeps the player in the same map)
+  constructor(gymFile: Uint8Array, padFile: Uint8Array) {
     this.ed = new FBEditor(gymFile);
     const zone = this.ed.vectorElems(this.ed.child(this.ed.u32(0), 0))[0];
     const objects = this.ed.vectorElems(this.ed.child(zone, LIST_OBJECTS));
@@ -186,59 +188,58 @@ export class Templates {
       const s = o && this.ed.child(o, 1);
       return s && this.ed.readString(s).endsWith('/warp01.gfbmdl');
     });
-    const pads = this.ed.vectorElems(this.ed.child(zone, LIST_PADS));
-    if (obj === undefined || !pads.length) throw new Error('placement: no teleport pad template in t011gym');
+    if (obj === undefined) throw new Error('placement: no warp tile template in t011gym');
     this.object = obj;
-    this.pad = pads[0];
+    this.padEd = new FBEditor(padFile);
+    const pads = this.padEd.vectorElems(this.padEd.child(this.padEd.u32(0), 0)).flatMap((z) => (this.padEd.child(z, LIST_PADS) ? this.padEd.vectorElems(this.padEd.child(z, LIST_PADS)) : []));
+    const pad = pads.find((e) => !this.padEd.fieldPos(this.padEd.child(e, 0), 10));
+    if (pad === undefined) throw new Error('placement: no map-changing teleport pad template');
+    this.pad = pad;
   }
 }
 
-function setTransform(ed: FBEditor, t: number, pos: number[], id: bigint | null) {
-  pos.forEach((v, i) => {
-    if (!ed.setFieldF32(t, i, v) && v) throw new Error('placement: the template has no slot for a position axis');
-  });
+const bits = (v: number) => new Uint32Array(new Float32Array([v]).buffer)[0];
+
+// a copy of a transform (no offsets in it) at a position with all three axes, linked from a table's field
+function placeTransform(ed: FBEditor, holder: number, field: number, pos: number[], id: bigint | null) {
+  const t = ed.cloneTable(ed.child(holder, field), {}, ed, { 0: bits(pos[0]), 1: bits(pos[1]), 2: bits(pos[2]) });
   if (id !== null) ed.setFieldU64(t, 9, id);
+  ed.link(ed.fieldPos(holder, field), t);
 }
 
 export function teleporterMakers(tpl: Templates, s: TeleporterSpec): { object: (ed: FBEditor) => number; pad: (ed: FBEditor) => number } {
   return {
     object: (ed) => {
       const e = ed.cloneDeep(tpl.object, 0, tpl.ed);
-      const o = ed.child(e, 0);
-      setTransform(ed, ed.child(o, 0), s.at, fnv1a64(`${s.id}_model`));
+      placeTransform(ed, ed.child(e, 0), 0, s.at, fnv1a64(`${s.id}_model`));
       return e;
     },
+    // pad: 0 transform, 1 destination map name, 2 destination zone hash, 3..5 arrival, 7 (2), 8 trigger box (6..8
+    // size), 11..13 the effect's timings (60, 10, 250)
     pad: (ed) => {
-      const e = ed.cloneDeep(tpl.pad, 0, tpl.ed);
-      const p = ed.child(e, 0);
-      setTransform(ed, ed.child(p, 0), [s.at[0], s.at[1] + 5, s.at[2]], fnv1a64(s.id));
-      ed.link(ed.fieldPos(p, 1), ed.string(s.destMap));
+      const e = ed.cloneDeep(tpl.pad, 0, tpl.padEd);
+      const old = ed.child(e, 0);
+      const p = ed.cloneTable(
+        old,
+        { 0: (q) => ed.cloneTable(q, {}, ed), 1: () => ed.string(s.destMap), 8: (q) => ed.cloneTable(q, {}, ed) },
+        ed,
+        { 3: bits(s.arrive[0]), 4: bits(s.arrive[1]), 5: bits(s.arrive[2]) },
+      );
+      ed.link(ed.fieldPos(e, 0), p);
+      placeTransform(ed, p, 0, [s.at[0], s.at[1] + 5, s.at[2]], fnv1a64(s.id));
       ed.setFieldU64(p, 2, fnv1a64(s.destZone));
-      s.arrive.forEach((v, i) => ed.setFieldF32(p, 3 + i, v));
       if (s.box) s.box.forEach((v, i) => ed.setFieldF32(ed.child(p, 8), 6 + i, v));
       return e;
     },
   };
 }
 
-// The warp tile's model (list 2) with a map-changing warp on it (list 4). (The game's own teleport pads, list 25, only
-// move the player within the same map.)
+// The warp tile's model (list 2) with a teleport pad (list 25) on it that leads to another map: stepping on it plays
+// the game's teleport effect before the map changes. (The walk-in warps of list 4 change maps with no effect.)
 export function addTeleporter(file: Uint8Array, zoneIndex: number, tpl: Templates, s: TeleporterSpec): Uint8Array {
   const m = teleporterMakers(tpl, s);
-  let f = editZoneList(file, zoneIndex, LIST_OBJECTS, [m.object]);
-  // a warp fires when the player walks into it in its box's direction: one per direction
-  for (const rot of [0, 90, 180, 270])
-    f = addWarp(f, zoneIndex, {
-      id: `${s.id}_${rot}`,
-      at: s.at,
-      box: s.box ?? [100, 100, 100],
-      walkRotY: rot,
-      destMap: s.destMap,
-      destZone: s.destZone,
-      arrive: s.arrive,
-      arriveRotY: 0,
-    });
-  return f;
+  const f = editZoneList(file, zoneIndex, LIST_OBJECTS, [m.object]);
+  return editZoneList(f, zoneIndex, LIST_PADS, [m.pad]);
 }
 
 // ---- signs: list 17 (what the player inspects with A; signs.ts)
