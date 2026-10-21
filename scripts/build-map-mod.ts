@@ -21,7 +21,8 @@ const r = buildMapMod({
     const p = join(cacheDir, 'models', `${id}.sel`);
     return existsSync(p) ? new Uint8Array(readFileSync(p)) : null;
   },
-  baseGround: process.env.BASE_GROUND !== '0', // BASE_GROUND=0: without the slot's ground
+  baseGround: process.env.BASE_GROUND ? process.env.BASE_GROUND !== '0' : undefined, // BASE_GROUND=0/1: without/with the slot's ground
+  yOffset: Number(process.env.Y_OFFSET ?? 0), // Y_OFFSET: the map moved up/down
   log: console.log,
 });
 for (const f of r.files) {

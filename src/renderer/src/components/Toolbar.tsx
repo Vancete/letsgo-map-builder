@@ -1,6 +1,7 @@
+// The tools used all the time (the rest is in the menu bar): undo, the gizmo's mode, snapping, the view, and the
+// export to the game.
 import { useEditor } from '../store';
-import { useUi } from '../ui';
-import { changeGameFolder, exportMod, generateThumbs, newMap, openMap, rebuildCatalog, saveMap } from '../actions';
+import { exportMod } from '../actions';
 
 export function Toolbar() {
   const tool = useEditor((s) => s.tool);
@@ -10,18 +11,11 @@ export function Toolbar() {
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
   const hasSel = useEditor((s) => s.selection.length > 0);
-  const thumbJob = useUi((s) => s.thumbJob);
   const e = useEditor.getState;
 
   return (
     <div className="toolbar">
       <span className="brand">Let's Go Map Builder</span>
-      <button onClick={newMap} title="Nuevo mapa (Ctrl+N)">📄 Nuevo</button>
-      <button onClick={() => openMap()} title="Abrir mapa (Ctrl+O)">📂 Abrir</button>
-      <button onClick={() => saveMap(false)} title="Guardar (Ctrl+S)">💾 Guardar</button>
-      <button onClick={() => saveMap(true)} title="Guardar como (Ctrl+Shift+S)">Guardar como</button>
-      <button onClick={exportMod} title="Crear un mod de Let's Go Recomp con el mapa, al que se llega con un teletransportador desde Pueblo Paleta">🎮 Exportar al juego</button>
-      <div className="sep" />
       <button onClick={() => e().undo()} disabled={!canUndo} title="Deshacer (Ctrl+Z)">↶</button>
       <button onClick={() => e().redo()} disabled={!canRedo} title="Rehacer (Ctrl+Y)">↷</button>
       <div className="sep" />
@@ -55,11 +49,9 @@ export function Toolbar() {
       <button className={topView ? 'active' : ''} onClick={() => e().toggleTopView()} title="Vista cenital (T)">⬒ Cenital</button>
       <button onClick={() => window.dispatchEvent(new Event('lg:focus'))} title="Encuadrar selección (F)">◎</button>
       <div className="spacer" />
-      <button onClick={() => generateThumbs(true)} disabled={!!thumbJob} title="Volver a generar todas las miniaturas">
-        🖼 Regenerar miniaturas
+      <button className="primary" onClick={exportMod} title="Crear un mod de Let's Go Recomp con el mapa, al que se llega con un teletransportador desde Pueblo Paleta (Ctrl+E)">
+        🎮 Exportar al juego
       </button>
-      <button onClick={rebuildCatalog} title="Volver a extraer los modelos del juego">↻ Catálogo</button>
-      <button onClick={changeGameFolder} title="Cambiar la carpeta del juego">⚙</button>
     </div>
   );
 }

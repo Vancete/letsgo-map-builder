@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useEditor } from './store';
 import { useUi } from './ui';
-import { confirmDiscard, generateThumbs, newMap, openMap, saveMap } from './actions';
+import { confirmDiscard, exportMod, generateThumbs, newMap, openMap, saveMap } from './actions';
 import { SetupScreen, BuildScreen } from './components/Setup';
 import { Toolbar } from './components/Toolbar';
+import { MenuBar } from './components/MenuBar';
 import { Hierarchy } from './components/Hierarchy';
 import { Viewport } from './components/Viewport';
 import { Inspector } from './components/Inspector';
@@ -72,6 +73,9 @@ function useShortcuts() {
         } else if (k === 'n') {
           e.preventDefault();
           newMap();
+        } else if (k === 'e') {
+          e.preventDefault();
+          exportMod();
         } else if (typing) return;
         else if (k === 'z' && !e.shiftKey) {
           e.preventDefault();
@@ -187,6 +191,7 @@ function Editor() {
         } as React.CSSProperties
       }
     >
+      <MenuBar />
       <Toolbar />
       <div className="panel left" style={{ position: 'relative' }}>
         <Hierarchy />

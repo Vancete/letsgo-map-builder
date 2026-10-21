@@ -2,8 +2,9 @@
 // properties when nothing is selected.
 import { useEffect, useState } from 'react';
 import { useEditor } from '../store';
-import { CATEGORY_LABELS, GRASS_ASSET, type MapObject } from '@shared/types';
+import { CATEGORY_LABELS, GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, type MapObject } from '@shared/types';
 import { GrassPanel } from './GrassPanel';
+import { StairsPanel, TerrainPanel, TexturePicker } from './TerrainPanel';
 import { thumbUrl } from '../three/thumbs';
 
 type V3 = [number, number, number];
@@ -229,8 +230,10 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
       </div>
 
       {obj.asset === GRASS_ASSET && <GrassPanel obj={obj} />}
+      {obj.asset === TERRAIN_ASSET && <TerrainPanel obj={obj} />}
+      {obj.asset === STAIRS_ASSET && <StairsPanel obj={obj} />}
 
-      {obj.asset && obj.asset !== GRASS_ASSET && (
+      {obj.asset && ![GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET].includes(obj.asset) && (
         <div>
           <h3>Modelo</h3>
           {asset && thumbs.has(asset.id) && <img className="insp-thumb" src={thumbUrl(asset.id, thumbVersion)} />}
@@ -337,6 +340,7 @@ function MapInspector() {
           centro de las casillas.
         </p>
       </div>
+      <GroundSection />
       <div>
         <h3>Contenido</h3>
         <div className="kv">
@@ -348,6 +352,65 @@ function MapInspector() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// the ground in the game: the slot's own meadow under the map, a ring of ground around it, filling the grid with tiles
+function GroundSection() {
+  const doc = useEditor((s) => s.doc);
+  const assets = useEditor((s) => s.assets);
+  const fillTex = useEditor((s) => s.fillTexture);
+  const ed = useEditor.getState;
+  const tiles = doc.objects.filter((o) => o.asset && assets.get(o.asset)?.source.kind === 'tile').length;
+  return (
+    <div>
+      <h3>Suelo en el juego</h3>
+      <div className="field">
+        <span>Pradera del hueco</span>
+        <select
+          value={doc.slotGround === undefined ? 'auto' : doc.slotGround ? 'yes' : 'no'}
+          onChange={(e) => ed().setMapInfo({ slotGround: e.target.value === 'auto' ? undefined : e.target.value === 'yes' })}
+        >
+          <option value="auto">Automática ({tiles ? 'no: el mapa tiene baldosas' : 'sí: el mapa no tiene baldosas'})</option>
+          <option value="yes">Sí</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div className="field">
+        <span>Borde exterior</span>
+        {doc.border ? (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 56px', gap: 6 }}>
+            <TexturePicker value={doc.border.texture} onChange={(texture) => ed().setMapInfo({ border: { ...doc.border!, texture } })} prefer={/grass/} />
+            <input
+              type="number"
+              min={0}
+              max={64}
+              value={doc.border.cells}
+              title="Ancho en casillas (0: sin borde)"
+              onChange={(e) => {
+                const cells = Math.max(0, Math.min(64, Math.round(Number(e.target.value) || 0)));
+                ed().setMapInfo({ border: cells ? { ...doc.border!, cells } : null });
+              }}
+            />
+          </div>
+        ) : (
+          <button onClick={() => ed().setMapInfo({ border: { texture: 'grass01_com', cells: 12 } })}>Añadir borde</button>
+        )}
+      </div>
+      <div className="field">
+        <span>Rellenar</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 6 }}>
+          <TexturePicker value={fillTex} onChange={(t) => useEditor.setState({ fillTexture: t })} prefer={/grass/} />
+          <button onClick={() => ed().fillGround(fillTex)} title="Cubre con baldosas de 4 × 4 casillas lo que aún no tiene baldosas">
+            Rellenar
+          </button>
+        </div>
+      </div>
+      <p className="kv">
+        La <b>pradera del hueco</b> es el suelo de la sala de pruebas que el mapa sustituye (40 × 40 casillas). Fuera del mapa el juego
+        solo muestra su fondo: el <b>borde exterior</b> pone suelo alrededor (solo se ve, no se pisa).
+      </p>
     </div>
   );
 }

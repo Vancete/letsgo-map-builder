@@ -3,8 +3,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { GRASS_ASSET, defaultGrass, grassRect, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
-import { getTemplate, placeholder } from './models';
+import { GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, cellRect, defaultGrass, defaultStairs, defaultTerrain, grassRect, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
+import { buildTerrain, stairsDir, stairsSize, type Surface, type TerrainShape } from '@shared/terrain';
+import { getTemplate, getTexture, placeholder } from './models';
 import type { SnapSettings, Tool } from '../store';
 
 const DEG = Math.PI / 180;
@@ -35,6 +36,8 @@ export class SceneView {
   private root = new THREE.Group();
   private nodes = new Map<string, NodeInfo>();
   private gridGroup = new THREE.Group();
+  private terrainGroup = new THREE.Group(); // raised ground, stairs and the ring around the map, as the game will draw them
+  private terrainKey = '';
   private hoverQuad: THREE.Mesh;
   private ghost: THREE.Object3D | null = null;
   private ghostAsset: string | null = null;
@@ -93,6 +96,7 @@ export class SceneView {
 
     this.scene.add(this.root);
     this.scene.add(this.gridGroup);
+    this.scene.add(this.terrainGroup);
     this.hoverQuad = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
       new THREE.MeshBasicMaterial({ color: 0xffd34d, transparent: true, opacity: 0.28, depthWrite: false }),
@@ -183,7 +187,100 @@ export class SceneView {
       const info = this.nodes.get(o.id)!;
       info.node.visible = o.visible;
     }
+    this.layoutTerrain();
     this.setSelection(selection);
+  }
+
+  // the cells of a raised block or stairs object, from its node's place in the world
+  private shapeOf(info: NodeInfo): TerrainShape | null {
+    if (!this.doc) return null;
+    const g = this.doc.grid;
+    const p = info.node.getWorldPosition(new THREE.Vector3());
+    if (info.obj.asset === TERRAIN_ASSET) {
+      const t = info.obj.terrain ?? defaultTerrain();
+      return { kind: 'terrain', ...cellRect(p.x - g.originX, p.z - g.originZ, t.w, t.d, g.cellSize), base: p.y, terrain: t };
+    }
+    const st = info.obj.stairs ?? defaultStairs();
+    const fwd = new THREE.Vector3(0, 0, -1).transformDirection(info.node.matrixWorld);
+    const dir = Math.abs(fwd.z) >= Math.abs(fwd.x) ? (fwd.z < 0 ? 0 : 2) : fwd.x > 0 ? 1 : 3;
+    const sz = stairsSize(st, dir);
+    return { kind: 'stairs', ...cellRect(p.x - g.originX, p.z - g.originZ, sz.w, sz.d, g.cellSize), base: p.y, stairs: st, dir };
+  }
+
+  // raised ground and stairs (shared/terrain.ts, as the export builds them), and the ring of ground around the map
+  private layoutTerrain() {
+    if (!this.doc) return;
+    const g = this.doc.grid;
+    this.root.updateMatrixWorld(true);
+    const items: { info: NodeInfo; shape: TerrainShape }[] = [];
+    for (const info of this.nodes.values()) {
+      if (info.obj.asset !== TERRAIN_ASSET && info.obj.asset !== STAIRS_ASSET) continue;
+      if (!this.isVisibleChain(info.node)) continue;
+      const shape = this.shapeOf(info);
+      if (shape) items.push({ info, shape });
+    }
+    const key = JSON.stringify([g, this.doc.border ?? null, items.map((i) => i.shape)]);
+    if (key === this.terrainKey) return;
+    this.terrainKey = key;
+    for (const c of [...this.terrainGroup.children]) {
+      c.removeFromParent();
+      if (c instanceof THREE.Mesh) {
+        c.geometry.dispose();
+        (c.material as THREE.Material).dispose();
+      }
+    }
+    const t = buildTerrain({ width: g.width, depth: g.depth, cell: g.cellSize }, items.map((i) => i.shape));
+    const byTex = new Map<string, Surface[]>();
+    const put = (tex: string, q: Surface) => {
+      let l = byTex.get(tex);
+      if (!l) byTex.set(tex, (l = []));
+      l.push(q);
+    };
+    for (const { texture, q } of t.surfaces) put(texture, q);
+    const b = this.doc.border;
+    if (b?.texture && b.cells > 0) {
+      const W = g.width * g.cellSize, D = g.depth * g.cellSize, r = b.cells * 100;
+      for (const [x0, z0, x1, z1] of [[-r, -r, W + r, 0], [-r, D, W + r, D + r], [-r, 0, 0, D], [W, 0, W + r, D]])
+        put(b.texture, { p: [[x0, -0.5, z0], [x1, -0.5, z0], [x1, -0.5, z1], [x0, -0.5, z1]], uv: [[x0 / 100, z0 / 100], [x1 / 100, z0 / 100], [x1 / 100, z1 / 100], [x0 / 100, z1 / 100]], n: [0, 1, 0] });
+    }
+    for (const [tex, quads] of byTex) {
+      const pos: number[] = [], nrm: number[] = [], uv: number[] = [], idx: number[] = [];
+      for (const q of quads) {
+        const v = pos.length / 3;
+        q.p.forEach((c, i) => {
+          pos.push(c[0] + g.originX, c[1], c[2] + g.originZ);
+          nrm.push(...q.n);
+          uv.push(q.uv[i][0], q.uv[i][1]);
+        });
+        const e1 = [0, 1, 2].map((k) => q.p[1][k] - q.p[0][k]), e2 = [0, 1, 2].map((k) => q.p[2][k] - q.p[0][k]);
+        const front = (e1[1] * e2[2] - e1[2] * e2[1]) * q.n[0] + (e1[2] * e2[0] - e1[0] * e2[2]) * q.n[1] + (e1[0] * e2[1] - e1[1] * e2[0]) * q.n[2] > 0;
+        idx.push(...(front ? [v, v + 1, v + 2, v, v + 2, v + 3] : [v, v + 2, v + 1, v, v + 3, v + 2]));
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      geo.setIndex(idx);
+      const mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ map: getTexture(tex) }));
+      this.terrainGroup.add(mesh);
+    }
+    // each object: a box to pick it by (invisible) and its outline
+    for (const { info, shape } of items) {
+      for (const c of [...info.node.children]) c.removeFromParent();
+      const p = info.node.getWorldPosition(new THREE.Vector3());
+      const top = shape.terrain?.height ?? shape.stairs?.height ?? 50;
+      const W = shape.w * g.cellSize, D = shape.d * g.cellSize;
+      const center = new THREE.Vector3(g.originX + (shape.cx0 + shape.w / 2) * g.cellSize, p.y + top / 2, g.originZ + (shape.cz0 + shape.d / 2) * g.cellSize);
+      const holder = new THREE.Group();
+      holder.position.copy(info.node.worldToLocal(center.clone()));
+      holder.quaternion.copy(info.node.getWorldQuaternion(new THREE.Quaternion()).invert());
+      const box = new THREE.Mesh(new THREE.BoxGeometry(W, Math.max(top, 4), D), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+      const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W, Math.max(top, 4), D)), new THREE.LineBasicMaterial({ color: info.obj.asset === STAIRS_ASSET ? 0xffe08a : 0xc8a06a, transparent: true, opacity: 0.6 }));
+      holder.add(box, edge);
+      info.node.add(holder);
+      info.loaded = true;
+    }
+    this.refreshSelBoxes();
   }
 
   // a grass zone: the game's tuft on each of its cells, over a translucent patch
@@ -231,7 +328,7 @@ export class SceneView {
 
   private loadContent(info: NodeInfo) {
     const assetId = info.obj.asset;
-    if (!assetId || assetId === GRASS_ASSET) return;
+    if (!assetId || assetId === GRASS_ASSET || assetId === TERRAIN_ASSET || assetId === STAIRS_ASSET) return;
     getTemplate(assetId)
       .then((t) => {
         if (!this.nodes.has(info.obj.id)) return;

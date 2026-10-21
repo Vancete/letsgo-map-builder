@@ -10,7 +10,7 @@ export function textureUrl(name: string) {
   return `lgcache://textures/${encodeURIComponent(name)}.png`;
 }
 
-function getTexture(name: string): THREE.Texture {
+export function getTexture(name: string): THREE.Texture {
   let t = textures.get(name);
   if (!t) {
     t = loader.load(textureUrl(name));

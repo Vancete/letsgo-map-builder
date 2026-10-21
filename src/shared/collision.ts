@@ -14,8 +14,15 @@ export interface ColMesh {
   idx: number[];
 }
 
-export function gfbcol(name: string, mesh: ColMesh, opts: { color?: [number, number, number, number] } = {}): Uint8Array {
-  const { verts, idx } = mesh;
+// polygons: groups of triangles, each with the index of its name (wall files: col_wall, col_jump...)
+export function gfbcol(
+  names: string | string[],
+  mesh: ColMesh | { verts: number[]; polys: { name: number; idx: number[] }[] },
+  opts: { color?: [number, number, number, number] } = {},
+): Uint8Array {
+  const verts = mesh.verts;
+  const polys = 'polys' in mesh ? mesh.polys : [{ name: 0, idx: mesh.idx }];
+  const nameList = typeof names === 'string' ? [names] : names;
   const c = new FBEditor(new Uint8Array(8));
   const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
   for (let i = 0; i < verts.length; i += 3)
@@ -37,7 +44,7 @@ export function gfbcol(name: string, mesh: ColMesh, opts: { color?: [number, num
     ? [() => buildTable(c, [{ idx: 2, u32: 3 }]), () => buildTable(c, [{ idx: 0, u32: 7 }, { idx: 1, u32: 3 }, { idx: 2, u32: 4 }])]
     : [() => buildTable(c, [{ idx: 2, u32: 3 }])];
   const r = buildTable(c, [
-    { idx: 0, child: (x) => x.vectorOfTables([() => buildTable(x, [{ idx: 0, child: (y) => y.string(name) }])]) },
+    { idx: 0, child: (x) => x.vectorOfTables(nameList.map((nm) => () => buildTable(x, [{ idx: 0, child: (y) => y.string(nm) }]))) },
     { idx: 1, child: (x) => x.vectorOfTables([() => buildTable(x, [{ idx: 1, bytes: box, align: 4 }])]) },
     {
       idx: 2,
@@ -45,7 +52,18 @@ export function gfbcol(name: string, mesh: ColMesh, opts: { color?: [number, num
         x.vectorOfTables([
           () =>
             buildTable(x, [
-              { idx: 0, child: (y) => y.vectorOfTables([() => buildTable(y, [{ idx: 1, child: (z) => z.bytesVector(new Uint8Array(Uint16Array.from(idx).buffer), 2) }])]) },
+              {
+                idx: 0,
+                child: (y) =>
+                  y.vectorOfTables(
+                    polys.map((p) => () =>
+                      buildTable(y, [
+                        ...(p.name ? [{ idx: 0, u32: p.name }] : []),
+                        { idx: 1, child: (z: FBEditor) => z.bytesVector(new Uint8Array(Uint16Array.from(p.idx).buffer), 2) },
+                      ]),
+                    ),
+                  ),
+              },
               { idx: 1, child: (y) => y.vectorOfTables(attrs) },
               { idx: 2, child: (y) => y.bytesVector(data, 1) },
             ]),

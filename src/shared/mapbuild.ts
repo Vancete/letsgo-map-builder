@@ -20,7 +20,8 @@ import type { GameFS } from './formats/gamefs.ts';
 import { Templates, addTeleporter, editZoneList, learnZoneSchema, placementPath, rootSettingsFrom, zoneIndexOf } from './placement.ts';
 import { ENCOUNT_FILES, ZONE_NAME_TABLE, addEncounterTables, addHashNames, addZone, grassPatchMaker } from './encounters.ts';
 import { addQuads, cellsMesh, gfbcol, wallQuad, type ColMesh } from './collision.ts';
-import { GRASS_ASSET, defaultGrass, grassRect, type AssetEntry, type AssetSource, type Category, type MapDocument, type MapObject, type WildTable } from './types.ts';
+import { buildTerrain, stairsSize, WALL_NAMES, type Surface, type TerrainShape } from './terrain.ts';
+import { GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, cellRect, defaultGrass, defaultStairs, defaultTerrain, grassRect, type AssetEntry, type AssetSource, type Category, type MapDocument, type MapObject, type WildTable } from './types.ts';
 
 export const MAP_SLOTS = ['test_chr01', 'test_chr02', 'test_chr03', 'test_chr04'];
 
@@ -40,7 +41,8 @@ export interface MapBuildOptions {
   selection: (assetId: string) => Uint8Array | null; // the piece's triangles (cache/models/<id>.sel)
   slot?: string;
   entrance?: Entrance;
-  baseGround?: boolean; // keep the slot's own ground under the map (default true)
+  baseGround?: boolean; // keep the slot's own ground under the map (default: the map's slotGround setting)
+  yOffset?: number; // the whole map moved up (+) or down (-)
   log?: (s: string) => void;
 }
 
@@ -53,6 +55,9 @@ export interface MapBuildResult {
 
 export const SPAWN_ASSET = 'lg.spawn';
 export const EXIT_ASSET = 'lg.exit';
+export const SIGN_ASSET = 'lg.sign';
+// the editor's own objects: not models
+const EDITOR_ASSETS = [SPAWN_ASSET, EXIT_ASSET, GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET];
 
 const SOLID: Category[] = ['pc', 'shop', 'gym', 'building', 'tree', 'rock', 'fence', 'street', 'water'];
 
@@ -111,6 +116,8 @@ function subSchema(schema: Schema, ...path: number[]): Schema {
 }
 
 // ---- half floats
+
+const f32bits = (v: number) => new Uint32Array(new Float32Array([v]).buffer)[0];
 
 const f32 = new Float32Array(1);
 const u32 = new Uint32Array(f32.buffer);
@@ -263,12 +270,28 @@ function shadowCasters(gf: GfModel, family: string, pick: Map<number, Map<number
   });
 }
 
+// ---- the editor's surfaces (ground tiles, terrain): quads drawn with a game material whose texture is replaced
+
+// a ground material with a single texture (Route 1's paving stones: FieldObjectShader, Texture01, the ground's toon
+// shading table)
+const SURFACE_TEMPLATE = { pak: 'bin/archive/field/area02/road001_00.gfpak', fileIndex: 0, material: 'roadstone01_com' };
+
+
+// the direction of +u along the quad's surface
+function tangent(q: Surface): [number, number, number] {
+  const e = [0, 1, 2].map((k) => q.p[1][k] - q.p[0][k]);
+  const du = q.uv[1][0] - q.uv[0][0] || 1;
+  const l = Math.hypot(...e) || 1;
+  return [e[0] / l / Math.sign(du), e[1] / l / Math.sign(du), e[2] / l / Math.sign(du)];
+}
+
 // ---- the build
 
 interface MatRef {
   model: SourceModel;
   index: number;
   name: string; // unique name in the merged model (= its shader files' name)
+  textures?: Record<string, string>; // sampler -> texture, replacing the material's own (the editor's ground tiles)
 }
 
 interface PieceMesh {
@@ -291,8 +314,9 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   const byId = new Map(o.doc.objects.map((x) => [x.id, x]));
   const W = g.width * g.cellSize;
   const D = g.depth * g.cellSize;
-  // the map's grid starts at the slot's origin
-  const toSlot = compose([-g.originX, 0, -g.originZ], [0, 0, 0], [1, 1, 1]);
+  // the map's grid starts at the slot's origin; the whole map can be moved up or down (yOffset)
+  const Y0 = o.yOffset ?? 0;
+  const toSlot = compose([-g.originX, Y0, -g.originZ], [0, 0, 0], [1, 1, 1]);
   const visible = (x: MapObject): boolean => {
     for (let p: MapObject | undefined = x, n = 0; p && n < 64; p = p.parent ? byId.get(p.parent) : undefined, n++) if (!p.visible) return false;
     return true;
@@ -302,19 +326,39 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     return a ? { source: a.source, category: a.category } : null;
   };
 
+  // raised ground and stairs: a height per cell (terrain.ts), in slot coordinates
+  const cell = g.cellSize;
+  const shapes: TerrainShape[] = [];
+  for (const x of o.doc.objects) {
+    if ((x.asset !== TERRAIN_ASSET && x.asset !== STAIRS_ASSET) || !visible(x)) continue;
+    const m = mul(toSlot, worldMatrix(x, byId));
+    const c = apply(m, 0, 0, 0);
+    if (x.asset === TERRAIN_ASSET) {
+      const t = x.terrain ?? defaultTerrain();
+      shapes.push({ kind: 'terrain', ...cellRect(c[0], c[2], t.w, t.d, cell), base: c[1], terrain: t });
+    } else {
+      const st = x.stairs ?? defaultStairs();
+      const fwd = applyDir(m, 0, 0, -1); // the way the object faces: where the stairs climb to
+      const dir = Math.abs(fwd[2]) >= Math.abs(fwd[0]) ? (fwd[2] < 0 ? 0 : 2) : fwd[0] > 0 ? 1 : 3;
+      const sz = stairsSize(st, dir);
+      shapes.push({ kind: 'stairs', ...cellRect(c[0], c[2], sz.w, sz.d, cell), base: c[1], stairs: st, dir });
+    }
+  }
+  const terrain = buildTerrain({ width: g.width, depth: g.depth, cell }, shapes, Y0);
+  const onGround = (p: [number, number, number]): [number, number, number] => [p[0], Math.max(p[1], terrain.height(p[0], p[2])), p[2]];
+
   // spawn and exit markers
-  let spawn: [number, number, number] = [W / 2, 0, D / 2];
+  let spawn: [number, number, number] = onGround([W / 2, Y0, D / 2]);
   let exit: [number, number, number] | null = null;
   for (const x of o.doc.objects) {
     if (x.asset !== SPAWN_ASSET && x.asset !== EXIT_ASSET) continue;
-    const p = apply(mul(toSlot, worldMatrix(x, byId)), 0, 0, 0);
+    const p = onGround(apply(mul(toSlot, worldMatrix(x, byId)), 0, 0, 0));
     if (x.asset === SPAWN_ASSET) spawn = p;
     else exit = p;
   }
-  if (!exit) exit = [spawn[0], spawn[1], spawn[2] + 3 * g.cellSize];
+  if (!exit) exit = onGround([spawn[0], spawn[1], spawn[2] + 3 * g.cellSize]);
 
   // tall-grass zones: cells of the slot's grid (the map's grid starts at the slot's origin)
-  const cell = g.cellSize;
   const grass: { name: string; cells: [number, number][]; center: [number, number, number]; wild: WildTable }[] = [];
   const grassCells = new Set<string>();
   for (const x of o.doc.objects) {
@@ -333,7 +377,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       }
     if (!cells.length) continue;
     if (!z.wild.slots.some((sl) => sl.species && sl.rate)) warnings.push(`${x.name}: zona de hierba sin Pokémon`);
-    grass.push({ name: `${slot}_g${grass.length + 1}`, cells, center: [(cx0 + w / 2) * cell, c[1], (cz0 + d / 2) * cell], wild: z.wild });
+    grass.push({ name: `${slot}_g${grass.length + 1}`, cells, center: onGround([(cx0 + w / 2) * cell, c[1], (cz0 + d / 2) * cell]), wild: z.wild });
   }
 
   // materials and meshes
@@ -344,17 +388,24 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   const walls: number[][] = []; // footprint boxes [x0, z0, x1, z1] of solid objects
   let triangles = 0;
   let objects = 0;
+  let tiles = 0;
+  const surfaces = new Map<string, Surface[]>(); // texture -> quads
+  const surface = (texture: string, q: Surface) => {
+    let l = surfaces.get(texture);
+    if (!l) surfaces.set(texture, (l = []));
+    l.push(q);
+  };
 
-  const mergedMaterial = (m: SourceModel, index: number): number => {
-    const k = `${m.key}#${index}`;
+  const mergedMaterial = (m: SourceModel, index: number, textures?: Record<string, string>): number => {
+    const k = `${m.key}#${index}#${JSON.stringify(textures ?? {})}`;
     let i = matIndex.get(k);
     if (i !== undefined) return i;
-    const orig = m.gf.materials[index]?.name || `mat${index}`;
+    const orig = textures ? `lg_${Object.values(textures).join('_')}` : m.gf.materials[index]?.name || `mat${index}`;
     let name = orig;
     for (let n = 2; usedNames.has(name); n++) name = `${orig}_${n}`;
     usedNames.add(name);
     i = materials.length;
-    materials.push({ model: m, index, name });
+    materials.push({ model: m, index, name, textures });
     matIndex.set(k, i);
     return i;
   };
@@ -441,7 +492,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   }
 
   for (const obj of o.doc.objects) {
-    if (!obj.asset || obj.asset === SPAWN_ASSET || obj.asset === EXIT_ASSET || obj.asset === GRASS_ASSET || !visible(obj)) continue;
+    if (!obj.asset || EDITOR_ASSETS.includes(obj.asset) || !visible(obj)) continue;
     const info = sourceOf(obj.asset);
     if (!info) {
       warnings.push(`${obj.name}: modelo desconocido (${obj.asset})`);
@@ -449,7 +500,17 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     }
     const s = info.source;
     if (s.kind === 'tile') {
-      warnings.push(`${obj.name}: las baldosas generadas aún no se exportan al juego`);
+      // a square of `cells` cells centered on the object, the texture repeated once per cell (as the editor shows it)
+      const m = mul(toSlot, worldMatrix(obj, byId));
+      const h = (s.cells * 100) / 2;
+      const c = [[-h, -h], [h, -h], [h, h], [-h, h]];
+      surface(s.texture, {
+        p: c.map(([x, z]) => apply(m, x, 0, z)),
+        uv: [[0, 0], [s.cells, 0], [s.cells, s.cells], [0, s.cells]],
+        n: applyDir(m, 0, 1, 0),
+      });
+      tiles++;
+      objects++;
       continue;
     }
     if (s.kind === 'marker') continue;
@@ -490,10 +551,84 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     objects++;
     const objBox = addPiece(obj.name, model, pick, world, pivot, s.kind !== 'zonePiece');
     if (SOLID.includes(info.category) && objBox[4] - objBox[1] > 40 && isFinite(objBox[0]))
-      walls.push([objBox[0], objBox[2], objBox[3], objBox[5]]);
+      walls.push([objBox[0], objBox[2], objBox[3], objBox[5], objBox[1]]);
   }
-  // the slot's own ground under the map (the editor's generated tiles have no game material yet)
-  if (o.baseGround !== false) {
+  // a ring of ground around the map (drawn only)
+  if (o.doc.border?.texture && o.doc.border.cells > 0) {
+    const b = Math.round(o.doc.border.cells) * 100;
+    const ring = [
+      [-b, -b, W + b, 0],
+      [-b, D, W + b, D + b],
+      [-b, 0, 0, D],
+      [W, 0, W + b, D],
+    ];
+    for (const [x0, z0, x1, z1] of ring)
+      for (let x = x0; x < x1; x += 400)
+        for (let z = z0; z < z1; z += 400) {
+          const xe = Math.min(x + 400, x1), ze = Math.min(z + 400, z1);
+          surface(o.doc.border.texture, {
+            p: [[x, Y0, z], [xe, Y0, z], [xe, Y0, ze], [x, Y0, ze]],
+            uv: [[x / 100, z / 100], [xe / 100, z / 100], [xe / 100, ze / 100], [x / 100, ze / 100]],
+            n: [0, 1, 0],
+          });
+        }
+  }
+  for (const { texture, q } of terrain.surfaces) surface(texture, q);
+  // the editor's surfaces: a game material for ground (a single texture: FieldObjectShader) with its texture replaced
+  if (surfaces.size) {
+    const tm = src.model(SURFACE_TEMPLATE.pak, SURFACE_TEMPLATE.fileIndex);
+    const mi = tm.gf.meshes.findIndex((m) => m.polygons.some((p) => tm.gf.materials[p.material]?.name === SURFACE_TEMPLATE.material));
+    if (mi < 0) throw new Error(`no se encuentra el material ${SURFACE_TEMPLATE.material}`);
+    const matIdx = tm.gf.meshes[mi].polygons.find((p) => tm.gf.materials[p.material]?.name === SURFACE_TEMPLATE.material)!.material;
+    const mt = tm.root.tables(8)[mi];
+    const attrs = mt.tables(1);
+    const layout = attrs.map((a) => ({ type: a.u32(0), fmt: a.u32(1), count: a.u32(2) }));
+    const stride = layout.reduce((n, a) => n + (FORMAT_SIZE[a.fmt] ?? 4) * a.count, 0);
+    const proto = mt.bytes(2).slice(0, stride); // a vertex of the template, for anything not set below
+    for (const [texture, quads] of surfaces)
+      for (let q0 = 0; q0 < quads.length; q0 += 16000) {
+        const part = quads.slice(q0, q0 + 16000);
+        const data = new Uint8Array(part.length * 4 * stride);
+        const dv = new DataView(data.buffer);
+        const box = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+        const idx = new Uint16Array(part.length * 6);
+        part.forEach((q, qi) => {
+          for (let c = 0; c < 4; c++) {
+            const base = (qi * 4 + c) * stride;
+            data.set(proto, base);
+            let off = 0;
+            for (const a of layout) {
+              const p = base + off;
+              if (a.type === 0 && a.fmt === 0) {
+                q.p[c].forEach((v, k) => dv.setFloat32(p + k * 4, v, true));
+                for (let k = 0; k < 3; k++) {
+                  box[k] = Math.min(box[k], q.p[c][k]);
+                  box[k + 3] = Math.max(box[k + 3], q.p[c][k]);
+                }
+              } else if (a.type === 1 && a.fmt === 1) q.n.forEach((v, k) => dv.setUint16(p + k * 2, toHalf(v), true));
+              else if (a.type === 2 && a.fmt === 1) {
+                const t = tangent(q);
+                t.forEach((v, k) => dv.setUint16(p + k * 2, toHalf(v), true));
+                if (a.count > 3) dv.setUint16(p + 6, toHalf(1), true);
+              } else if (a.type === 3 && a.fmt === 0) q.uv[c].forEach((v, k) => dv.setFloat32(p + k * 4, v, true));
+              else if (a.type === 3 && a.fmt === 1) q.uv[c].forEach((v, k) => dv.setUint16(p + k * 2, toHalf(v), true));
+              else if (a.type === 7 && a.fmt === 3) data.fill(255, p, p + a.count);
+              off += (FORMAT_SIZE[a.fmt] ?? 4) * a.count;
+            }
+          }
+          // front faces wound as the game's (counter-clockwise seen from the side the normal points to)
+          const e1 = [0, 1, 2].map((k) => q.p[1][k] - q.p[0][k]), e2 = [0, 1, 2].map((k) => q.p[2][k] - q.p[0][k]);
+          const front = (e1[1] * e2[2] - e1[2] * e2[1]) * q.n[0] + (e1[2] * e2[0] - e1[0] * e2[2]) * q.n[1] + (e1[0] * e2[1] - e1[1] * e2[0]) * q.n[2] > 0;
+          const v = qi * 4;
+          idx.set(front ? [v, v + 1, v + 2, v, v + 2, v + 3] : [v, v + 2, v + 1, v, v + 3, v + 2], qi * 6);
+        });
+        triangles += part.length * 2;
+        meshes.push({ material: [], attrs, stride, data, polys: [{ material: mergedMaterial(tm, matIdx, { Texture01: texture }), indices: idx }], box, srcModel: tm });
+      }
+  }
+  // the slot's own ground under the map (a test meadow of 40 x 40 cells): by default only when the map has no ground
+  // tiles of its own
+  if (o.baseGround ?? o.doc.slotGround ?? !tiles) {
     const base = src.modelFile(`bin/field/model/${slot}/${slot}.gfbmdl`, `bin/archive/field/${slot}.gfpak`);
     const pick = new Map<number, Map<number, number[]>>();
     base.gf.meshes.forEach((mesh, mi) => {
@@ -501,7 +636,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       mesh.polygons.forEach((p, pi) => mp.set(pi, Array.from({ length: Math.floor(p.indices.length / 3) }, (_, k) => k)));
       pick.set(mi, mp);
     });
-    addPiece('suelo base', base, pick, compose([0, 0, 0], [0, 0, 0], [1, 1, 1]), [0, 0, 0], false);
+    addPiece('suelo base', base, pick, compose([0, Y0, 0], [0, 0, 0], [1, 1, 1]), [0, 0, 0], false);
   }
   if (!meshes.length) throw new Error('El mapa no tiene objetos que se puedan exportar al juego');
   if (W > 4000 || D > 4000) warnings.push('El mapa mide más de 40 casillas: el suelo base del hueco solo cubre 40 x 40');
@@ -547,7 +682,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     if (!maps) continue;
     for (const sm of e.vectorElems(maps)) {
       const f1 = e.fieldPos(sm, 1);
-      texOf(mr.model.textures[f1 ? e.u32(f1) : 0] ?? '', mr.model.pak);
+      texOf(mr.textures?.[e.readString(e.child(sm, 0))] ?? mr.model.textures[f1 ? e.u32(f1) : 0] ?? '', mr.model.pak);
     }
   }
 
@@ -565,7 +700,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
         srcMaps.map((sm) => () => {
           const sampler = mr.model.ed.readString(mr.model.ed.child(sm, 0));
           const f1 = mr.model.ed.fieldPos(sm, 1);
-          const texName = mr.model.textures[f1 ? mr.model.ed.u32(f1) : 0] ?? '';
+          const texName = mr.textures?.[sampler] ?? mr.model.textures[f1 ? mr.model.ed.u32(f1) : 0] ?? '';
           const params = mr.model.ed.child(sm, 2);
           const fields: FieldSpec[] = [
             { idx: 0, child: (x) => x.string(sampler) },
@@ -676,24 +811,26 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   }
 
   // ---- collision (see collision.ts)
-  const floor: ColMesh = { verts: [], idx: [] };
-  addQuads(floor, [[0, 0, 0, W, 0, 0, 0, 0, D, W, 0, D]]);
-  const wallMesh: ColMesh = { verts: [], idx: [] };
-  const lo = -100, hi = 500;
-  addQuads(wallMesh, [wallQuad(0, 0, W, 0, lo, hi), wallQuad(W, 0, W, D, lo, hi), wallQuad(W, D, 0, D, lo, hi), wallQuad(0, D, 0, 0, lo, hi)]);
-  for (const [x0, z0, x1, z1] of walls)
-    addQuads(wallMesh, [wallQuad(x0, z0, x1, z0, lo, hi), wallQuad(x1, z0, x1, z1, lo, hi), wallQuad(x1, z1, x0, z1, lo, hi), wallQuad(x0, z1, x0, z0, lo, hi)]);
+  // the floor at every height (terrain.ts); walls: around the map, around solid objects, the cliffs (col_wall) and
+  // the ledges (col_jump)
+  const floor: ColMesh = terrain.floor;
+  const wallMesh: ColMesh = { verts: [...terrain.walls.verts], idx: [] };
+  const top = shapes.reduce((m, s) => Math.max(m, s.base + (s.terrain?.height ?? s.stairs?.height ?? 0)), Y0);
+  addQuads(wallMesh, [wallQuad(0, 0, W, 0, Y0 - 100, top + 500), wallQuad(W, 0, W, D, Y0 - 100, top + 500), wallQuad(W, D, 0, D, Y0 - 100, top + 500), wallQuad(0, D, 0, 0, Y0 - 100, top + 500)]);
+  for (const [x0, z0, x1, z1, y0] of walls)
+    addQuads(wallMesh, [wallQuad(x0, z0, x1, z0, y0 - 100, y0 + 500), wallQuad(x1, z0, x1, z1, y0 - 100, y0 + 500), wallQuad(x1, z1, x0, z1, y0 - 100, y0 + 500), wallQuad(x0, z1, x0, z0, y0 - 100, y0 + 500)]);
+  const wallPolys = [{ name: 0, idx: [...(terrain.walls.polys.find((p) => p.name === 0)?.idx ?? []), ...wallMesh.idx] }, ...terrain.walls.polys.filter((p) => p.name !== 0)];
   let zoneMesh: ColMesh = { verts: [], idx: [] };
-  if (!grass.length) addQuads(zoneMesh, [[0, 0, 0, W, 0, 0, 0, 0, D, W, 0, D]]);
+  if (!grass.length) addQuads(zoneMesh, [[0, Y0, 0, W, Y0, 0, 0, Y0, D, W, Y0, D]]);
   else {
     // the base zone: every cell but the grass zones' (zones don't overlap)
     const rest: [number, number][] = [];
     for (let i = 0; i < g.width; i++) for (let k = 0; k < g.depth; k++) if (!grassCells.has(`${i},${k}`)) rest.push([i, k]);
-    zoneMesh = cellsMesh(rest, cell, 0, 0);
+    zoneMesh = cellsMesh(rest, cell, 0, 0, Y0);
   }
   const grassFiles: { path: string; data: Uint8Array }[] = [];
   for (const gz of grass) {
-    grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_zone.gfbcol`, data: gfbcol('col_zone', cellsMesh(gz.cells, cell, 0, 0)) }); // the zone: slot coordinates
+    grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_zone.gfbcol`, data: gfbcol('col_zone', cellsMesh(gz.cells, cell, 0, 0, Y0)) }); // the zone: slot coordinates
     const patch = cellsMesh(gz.cells, cell, gz.center[0], gz.center[2]); // the patch: around its position
     grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_enc.gfbcol`, data: gfbcol('col_enc', patch, { color: [255, 255, 255, 255] }) });
   }
@@ -701,10 +838,13 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   // ---- terrain block: the map's size
   const terrainPath = `bin/field/param/terrain/${slot}/terrain_data.bin`;
   const te = new FBEditor(o.fs.read(terrainPath));
-  const block = te.child(te.vectorElems(te.child(te.u32(0), 0))[0], 0);
-  te.setFieldF32(block, 0, 0);
-  te.setFieldF32(block, 3, W);
-  te.setFieldF32(block, 5, D);
+  // (block: 0..2 corner, 3..5 size, 6 model, 7 animations, 8 wall and 9 floor collision; the slot's has no height, and
+  // the game plants no tall grass outside a block's box: it is written again with all six)
+  const elem = te.vectorElems(te.child(te.u32(0), 0))[0];
+  const block = te.child(elem, 0);
+  const str = (i: number) => (p: number) => (i === 7 ? te.vectorOfTables([]) : te.cloneString(p));
+  const nb = te.cloneTable(block, { 6: str(6), 7: str(7), 8: str(8), 9: str(9) }, te, { 0: f32bits(0), 1: f32bits(Y0 - 500), 2: f32bits(0), 3: f32bits(W), 4: f32bits(2000), 5: f32bits(D) });
+  te.link(te.fieldPos(elem, 0), nb);
 
   // ---- placement: the slot emptied, teleporters both ways
   const ppak = src.pak('bin/archive/field/placement.gfpak');
@@ -720,11 +860,17 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       data = rootSettingsFrom(data, area02Data, zoneSchema);
       // a zone per grass zone, with its patch of tall grass
       const area02 = new FBEditor(area02Data);
-      const tplZone = area02.vectorElems(area02.child(area02.u32(0), 0)).find((z) => {
-        const l = area02.child(z, 5);
-        return l && area02.vectorElems(l).some((e) => area02.readString(area02.child(area02.child(e, 0), 2)).includes('enc_grass'));
-      })!;
-      const tplPatch = area02.vectorElems(area02.child(tplZone, 5)).find((e) => area02.readString(area02.child(area02.child(e, 0), 2)).includes('enc_grass'))!;
+      // (a Route 1 patch whose position has all three axes: tables leave out fields at 0, and a patch with no Y stays
+      // at height 0)
+      const isTuftPatch = (e: number) => {
+        const obj = area02.child(e, 0);
+        return area02.readString(area02.child(obj, 2)).includes('enc_grass') && !!area02.fieldPos(area02.child(obj, 0), 1);
+      };
+      const tplPatch = area02
+        .vectorElems(area02.child(area02.u32(0), 0))
+        .flatMap((z) => (area02.child(z, 5) ? area02.vectorElems(area02.child(z, 5)) : []))
+        .find(isTuftPatch);
+      if (tplPatch === undefined) throw new Error('placement: no tall-grass patch template in area02');
       for (const gz of grass) {
         const added = addZone(data, 0, gz.name, `bin/field/model/${slot}/${gz.name}_zone.gfbcol`, zoneSchema);
         data = editZoneList(added.data, added.index, 5, [
@@ -753,7 +899,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       { path: slotModelPath, data: modelData },
       { path: packPath, data: writeGfpak(entries) },
       { path: `bin/field/model/${slot}/${slot}_floor.gfbcol`, data: gfbcol('col_floor', floor) },
-      { path: `bin/field/model/${slot}/${slot}_wall.gfbcol`, data: gfbcol('col_wall', wallMesh) },
+      { path: `bin/field/model/${slot}/${slot}_wall.gfbcol`, data: gfbcol(WALL_NAMES, { verts: wallMesh.verts, polys: wallPolys }) },
       { path: `bin/field/model/${slot}/${slot}_zone.gfbcol`, data: gfbcol('col_zone', zoneMesh) },
       { path: terrainPath, data: te.data },
       { path: 'bin/archive/field/placement.gfpak', data: writeGfpak(pentries) },

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GRASS_ASSET, defaultGrass, emptyMap, type AssetEntry, type Catalog, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
+import { GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, defaultGrass, defaultStairs, defaultTerrain, emptyMap, type AssetEntry, type Catalog, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
 
 export type Tool = 'translate' | 'rotate' | 'scale';
 
@@ -38,7 +38,9 @@ interface EditorState {
   newMap(): void;
   loadMap(doc: MapDocument, path: string | null): void;
   markSaved(path: string): void;
-  setMapInfo(p: Partial<Pick<MapDocument, 'name' | 'author' | 'description'>>): void;
+  setMapInfo(p: Partial<Pick<MapDocument, 'name' | 'author' | 'description' | 'slotGround' | 'border'>>): void;
+  fillTexture: string; // the ground texture "Rellenar" uses
+  fillGround(texture: string): void;
   setGrid(g: Partial<MapGrid>): void;
 
   addObject(assetId: string | null, position: [number, number, number], opts?: { name?: string; parent?: string | null; rotation?: [number, number, number] }): string;
@@ -129,6 +131,51 @@ export const useEditor = create<EditorState>((set, get) => {
     markSaved: (path) => set({ filePath: path, dirty: false }),
     setMapInfo: (p) => apply({ ...get().doc, ...p }, false),
     setGrid: (g) => apply({ ...get().doc, grid: { ...get().doc.grid, ...g } }),
+    fillTexture: 'grass01_com',
+    // 4 x 4 tiles of a texture wherever the grid has no ground tile yet, in a folder of their own (locked)
+    fillGround: (texture) => {
+      const s = get();
+      const g = s.doc.grid;
+      const tile = [...s.assets.values()].find((a) => a.source.kind === 'tile' && a.source.texture === texture && a.source.cells === 4);
+      if (!tile) return;
+      const covered = new Set<string>();
+      const byId = new Map(s.doc.objects.map((o) => [o.id, o]));
+      for (const o of s.doc.objects) {
+        const a = o.asset ? s.assets.get(o.asset) : undefined;
+        if (a?.source.kind !== 'tile') continue;
+        // (tiles at the top level or in folders that are not moved)
+        let x = o.position[0], z = o.position[2];
+        for (let p = o.parent ? byId.get(o.parent) : undefined; p; p = p.parent ? byId.get(p.parent) : undefined) {
+          x += p.position[0];
+          z += p.position[2];
+        }
+        const n = a.source.cells;
+        const cx0 = Math.round((x - g.originX) / g.cellSize - n / 2), cz0 = Math.round((z - g.originZ) / g.cellSize - n / 2);
+        for (let i = 0; i < n; i++) for (let k = 0; k < n; k++) covered.add(`${cx0 + i},${cz0 + k}`);
+      }
+      const folder = newId();
+      const added: MapObject[] = [];
+      for (let cx = 0; cx + 4 <= g.width; cx += 4)
+        for (let cz = 0; cz + 4 <= g.depth; cz += 4) {
+          let free = true;
+          for (let i = 0; i < 4 && free; i++) for (let k = 0; k < 4 && free; k++) if (covered.has(`${cx + i},${cz + k}`)) free = false;
+          if (!free) continue;
+          added.push({
+            id: newId(),
+            name: tile.name,
+            asset: tile.id,
+            parent: folder,
+            position: [g.originX + (cx + 2) * g.cellSize, 0, g.originZ + (cz + 2) * g.cellSize],
+            rotation: [0, 0, 0],
+            scale: [1, 1, 1],
+            visible: true,
+            locked: false,
+          });
+        }
+      if (!added.length) return;
+      const group: MapObject = { id: folder, name: `Suelo (${texture})`, asset: null, parent: null, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], visible: true, locked: true };
+      apply(withObjects([...s.doc.objects, group, ...added]));
+    },
 
     addObject: (assetId, position, opts) => {
       const s = get();
@@ -145,6 +192,8 @@ export const useEditor = create<EditorState>((set, get) => {
         visible: true,
         locked: false,
         ...(assetId === GRASS_ASSET ? { grass: defaultGrass() } : {}),
+        ...(assetId === TERRAIN_ASSET ? { terrain: defaultTerrain() } : {}),
+        ...(assetId === STAIRS_ASSET ? { stairs: defaultStairs() } : {}),
       };
       apply(withObjects([...s.doc.objects, obj]));
       set({ selection: [id] });

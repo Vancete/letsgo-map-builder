@@ -616,8 +616,8 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
         if (!f) families.set(family, (f = { meshes: [], container: d0 }));
         f.meshes.push(mi);
         const mat = model.materials[mesh.polygons[0]?.material ?? -1];
-        if (mat && /Ground/i.test(mat.shader)) {
-          for (const s of ['GrassTex01', 'GroundTex01', 'GroundTex02', 'GrassTex02', 'Texture01'])
+        if (mat && /Ground|Cliff/i.test(mat.shader)) {
+          for (const s of ['GrassTex01', 'GroundTex01', 'GroundTex02', 'GrassTex02', 'Texture01', 'CliffTex01'])
             if (mat.textures[s]) {
               const tex = texLookup.get(mat.textures[s], contents.textures);
               if (!tex) continue;
@@ -722,6 +722,51 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
     if (tuft && existsSync(join(modelsDir, 'bm.enc_grass01.lgm'))) {
       writeFileSync(join(modelsDir, 'lg.grass.lgm'), readFileSync(join(modelsDir, 'bm.enc_grass01.lgm')));
       assets.unshift({ id: 'lg.grass', name: 'Zona de hierba alta (Pokémon salvajes)', category: 'grass', zone: null, source: { kind: 'marker', marker: 'grass' }, bounds: tuft.bounds, triangles: tuft.triangles });
+    }
+    // raised ground and stairs (drawn by the editor from their settings; these models are their thumbnails)
+    const flat = (name: string, map: string | null, color: [number, number, number]): LgmMaterial => ({ name, map, map2: null, uvSet: 0, uvScale: [1, 1], alphaTest: 0, blend: false, doubleSided: true, color, vertexColor: false });
+    const boxMesh = (material: number, x0: number, y0: number, z0: number, x1: number, y1: number, z1: number, faces: 'top' | 'sides'): LgmMeshData => {
+      const pos: number[] = [], nrm: number[] = [], uv: number[] = [], idx: number[] = [];
+      const q = (p: number[][], n: number[]) => {
+        const b = pos.length / 3;
+        p.forEach((v, i) => {
+          pos.push(...v);
+          nrm.push(n[0] * 127, n[1] * 127, n[2] * 127);
+          uv.push([0, 1, 1, 0][i], [0, 0, 1, 1][i]);
+        });
+        idx.push(b, b + 2, b + 1, b, b + 3, b + 2);
+      };
+      if (faces === 'top') q([[x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1]], [0, 1, 0]);
+      else {
+        q([[x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]], [0, 0, 1]);
+        q([[x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1]], [1, 0, 0]);
+        q([[x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0]], [0, 0, -1]);
+        q([[x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0]], [-1, 0, 0]);
+      }
+      return { material, position: new Float32Array(pos), normal: new Int8Array(nrm), uv0: new Float32Array(uv), uv1: null, color: null, index: new Uint16Array(idx) };
+    };
+    const has = (t: string) => texStore.has(t);
+    const block: LgmModel = {
+      bounds: [-150, 0, -100, 150, 50, 100],
+      materials: [flat('top', has('grass01_com') ? 'grass01_com' : null, [0.4, 0.7, 0.3]), flat('side', has('cliff04_com') ? 'cliff04_com' : null, [0.55, 0.4, 0.25])],
+      meshes: [boxMesh(0, -150, 0, -100, 150, 50, 100, 'top'), boxMesh(1, -150, 0, -100, 150, 50, 100, 'sides')],
+    };
+    writeFileSync(join(modelsDir, 'lg.terrain.lgm'), deflateSync(encodeLgm(block)));
+    const steps: LgmModel = {
+      bounds: [-50, 0, -100, 50, 50, 100],
+      materials: [flat('steps', has('roadstone01_com') ? 'roadstone01_com' : null, [0.7, 0.7, 0.65])],
+      meshes: [0, 1, 2, 3].flatMap((i) => [boxMesh(0, -50, 0, 100 - (i + 1) * 50, 50, 12.5 * (i + 1), 100 - i * 50, 'top'), boxMesh(0, -50, 12.5 * i, 100 - (i + 1) * 50, 50, 12.5 * (i + 1), 100 - i * 50, 'sides')]),
+    };
+    writeFileSync(join(modelsDir, 'lg.stairs.lgm'), deflateSync(encodeLgm(steps)));
+    assets.unshift(
+      { id: 'lg.stairs', name: 'Escaleras', category: 'ledge', zone: null, source: { kind: 'marker', marker: 'stairs' }, bounds: steps.bounds as Box, triangles: 40 },
+      { id: 'lg.terrain', name: 'Elevación (desnivel, saltos)', category: 'ledge', zone: null, source: { kind: 'marker', marker: 'terrain' }, bounds: block.bounds as Box, triangles: 10 },
+    );
+    // a sign the player reads (its model: Pallet Town's signboard)
+    const board = assets.find((a) => a.id === 'zp.area02.town001_00.signboard01.0');
+    if (board && existsSync(join(modelsDir, `${board.id}.lgm`))) {
+      writeFileSync(join(modelsDir, 'lg.sign.lgm'), readFileSync(join(modelsDir, `${board.id}.lgm`)));
+      assets.unshift({ id: 'lg.sign', name: 'Cartel con texto', category: 'street', zone: null, source: { kind: 'marker', marker: 'sign' }, bounds: board.bounds, triangles: board.triangles });
     }
     const pad = assets.find((a) => a.id === 'bm.warp01');
     if (pad && existsSync(join(modelsDir, 'bm.warp01.lgm'))) {
