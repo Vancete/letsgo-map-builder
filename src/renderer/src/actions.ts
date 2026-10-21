@@ -64,6 +64,11 @@ export async function saveMap(as: boolean): Promise<boolean> {
   }
 }
 
+// the block editor, optionally at an object's event
+export function openLogic(objectId: string | null = null) {
+  useUi.setState({ logicOpen: true, logicFocus: objectId });
+}
+
 export function exportMod() {
   useUi.setState({ exportOpen: true });
 }

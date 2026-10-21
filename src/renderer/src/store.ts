@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GRASS_ASSET, SIGN_ASSET, STAIRS_ASSET, TERRAIN_ASSET, defaultGrass, defaultStairs, defaultTerrain, emptyMap, type AssetEntry, type Catalog, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
+import { GRASS_ASSET, SIGN_ASSET, STAIRS_ASSET, TERRAIN_ASSET, TRIGGER_ASSET, defaultGrass, defaultStairs, defaultTerrain, emptyMap, type AssetEntry, type Catalog, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
 
 export type Tool = 'translate' | 'rotate' | 'scale';
 
@@ -41,6 +41,7 @@ interface EditorState {
   setMapInfo(p: Partial<Pick<MapDocument, 'name' | 'author' | 'description' | 'slotGround' | 'border'>>): void;
   fillTexture: string; // the ground texture "Rellenar" uses
   fillGround(texture: string): void;
+  setLogic(json: unknown): void; // the block editor's workspace
   setGrid(g: Partial<MapGrid>): void;
 
   addObject(assetId: string | null, position: [number, number, number], opts?: { name?: string; parent?: string | null; rotation?: [number, number, number] }): string;
@@ -132,6 +133,10 @@ export const useEditor = create<EditorState>((set, get) => {
     setMapInfo: (p) => apply({ ...get().doc, ...p }, false),
     setGrid: (g) => apply({ ...get().doc, grid: { ...get().doc.grid, ...g } }),
     fillTexture: 'grass01_com',
+    setLogic: (json) => {
+      if (JSON.stringify(json) === JSON.stringify(get().doc.logic ?? null)) return;
+      apply({ ...get().doc, logic: json });
+    },
     // 4 x 4 tiles of a texture wherever the grid has no ground tile yet, in a folder of their own (locked)
     fillGround: (texture) => {
       const s = get();
@@ -195,6 +200,7 @@ export const useEditor = create<EditorState>((set, get) => {
         ...(assetId === TERRAIN_ASSET ? { terrain: defaultTerrain() } : {}),
         ...(assetId === STAIRS_ASSET ? { stairs: defaultStairs() } : {}),
         ...(assetId === SIGN_ASSET ? { sign: { text: 'Escribe aquí el texto del cartel.' } } : {}),
+        ...(assetId === TRIGGER_ASSET ? { trigger: { w: 1, d: 1 } } : {}),
       };
       apply(withObjects([...s.doc.objects, obj]));
       set({ selection: [id] });

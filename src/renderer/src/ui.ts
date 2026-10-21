@@ -19,6 +19,8 @@ interface UiState {
   toast: { text: string; error?: boolean; id: number } | null;
   confirm: ConfirmReq | null;
   exportOpen: boolean;
+  logicOpen: boolean; // the block editor
+  logicFocus: string | null; // the object it was opened for
   setPhase(p: Phase): void;
   setBuild(p: ExtractProgress | null, error?: string | null): void;
   setThumbJob(j: { done: number; total: number } | null): void;
@@ -35,6 +37,8 @@ export const useUi = create<UiState>((set, get) => ({
   toast: null,
   confirm: null,
   exportOpen: false,
+  logicOpen: false,
+  logicFocus: null,
   setPhase: (phase) => set({ phase }),
   setBuild: (buildProgress, buildError = null) => set({ buildProgress, buildError }),
   setThumbJob: (thumbJob) => set({ thumbJob }),

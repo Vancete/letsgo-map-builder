@@ -2,7 +2,8 @@
 // properties when nothing is selected.
 import { useEffect, useState } from 'react';
 import { useEditor } from '../store';
-import { CATEGORY_LABELS, GRASS_ASSET, SIGN_ASSET, STAIRS_ASSET, TERRAIN_ASSET, type MapObject } from '@shared/types';
+import { CATEGORY_LABELS, GRASS_ASSET, SIGN_ASSET, STAIRS_ASSET, TERRAIN_ASSET, TRIGGER_ASSET, type MapObject } from '@shared/types';
+import { TriggerPanel } from './SignPanel';
 import { SignPanel } from './SignPanel';
 import { GrassPanel } from './GrassPanel';
 import { StairsPanel, TerrainPanel, TexturePicker } from './TerrainPanel';
@@ -234,8 +235,9 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
       {obj.asset === TERRAIN_ASSET && <TerrainPanel obj={obj} />}
       {obj.asset === STAIRS_ASSET && <StairsPanel obj={obj} />}
       {obj.asset === SIGN_ASSET && <SignPanel obj={obj} />}
+      {obj.asset === TRIGGER_ASSET && <TriggerPanel obj={obj} />}
 
-      {obj.asset && ![GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET].includes(obj.asset) && (
+      {obj.asset && ![GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET, TRIGGER_ASSET].includes(obj.asset) && (
         <div>
           <h3>Modelo</h3>
           {asset && thumbs.has(asset.id) && <img className="insp-thumb" src={thumbUrl(asset.id, thumbVersion)} />}

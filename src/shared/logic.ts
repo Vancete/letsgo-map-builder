@@ -106,6 +106,11 @@ export function readProgram(ws: WorkspaceJson | null | undefined): Program {
         case 'variables_set':
           out.push({ k: 'set', id: (b.fields?.VAR as { id: string }).id, value: expr(input(b, 'VALUE'), where) });
           break;
+        case 'math_change': {
+          const id = (b.fields?.VAR as { id: string }).id;
+          out.push({ k: 'set', id, value: { k: 'arith', op: 'ADD', a: { k: 'var', id }, b: expr(input(b, 'DELTA'), where) } });
+          break;
+        }
         case 'controls_if': {
           const n = 1 + Number(b.extraState?.elseIfCount ?? 0);
           const branches = Array.from({ length: n }, (_, i) => ({ cond: expr(input(b, `IF${i}`), where), body: stmts(input(b, `DO${i}`), where) }));

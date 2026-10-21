@@ -762,16 +762,24 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
       { id: 'lg.stairs', name: 'Escaleras', category: 'ledge', zone: null, source: { kind: 'marker', marker: 'stairs' }, bounds: steps.bounds as Box, triangles: 40 },
       { id: 'lg.terrain', name: 'Elevación (desnivel, saltos)', category: 'ledge', zone: null, source: { kind: 'marker', marker: 'terrain' }, bounds: block.bounds as Box, triangles: 10 },
     );
+    // a trigger zone: an area that runs its "Al pisar" logic (drawn by the editor over its cells)
+    const pad: LgmModel = {
+      bounds: [-50, 0, -50, 50, 2, 50],
+      materials: [flat('trigger', null, [1, 0.55, 0.15])],
+      meshes: [boxMesh(0, -50, 0, -50, 50, 2, 50, 'top')],
+    };
+    writeFileSync(join(modelsDir, 'lg.trigger.lgm'), deflateSync(encodeLgm(pad)));
+    assets.unshift({ id: 'lg.trigger', name: 'Zona de activación (al pisarla)', category: 'gimmick', zone: null, source: { kind: 'marker', marker: 'trigger' }, bounds: pad.bounds as Box, triangles: 2 });
     // a sign the player reads (its model: Pallet Town's signboard)
     const board = assets.find((a) => a.id === 'zp.area02.town001_00.signboard01.0');
     if (board && existsSync(join(modelsDir, `${board.id}.lgm`))) {
       writeFileSync(join(modelsDir, 'lg.sign.lgm'), readFileSync(join(modelsDir, `${board.id}.lgm`)));
       assets.unshift({ id: 'lg.sign', name: 'Cartel con texto', category: 'street', zone: null, source: { kind: 'marker', marker: 'sign' }, bounds: board.bounds, triangles: board.triangles });
     }
-    const pad = assets.find((a) => a.id === 'bm.warp01');
-    if (pad && existsSync(join(modelsDir, 'bm.warp01.lgm'))) {
+    const warp = assets.find((a) => a.id === 'bm.warp01');
+    if (warp && existsSync(join(modelsDir, 'bm.warp01.lgm'))) {
       writeFileSync(join(modelsDir, 'lg.exit.lgm'), readFileSync(join(modelsDir, 'bm.warp01.lgm')));
-      assets.unshift({ id: 'lg.exit', name: 'Salida (teletransportador)', category: 'marker', zone: null, source: { kind: 'marker', marker: 'exit' }, bounds: pad.bounds, triangles: pad.triangles });
+      assets.unshift({ id: 'lg.exit', name: 'Salida (teletransportador)', category: 'marker', zone: null, source: { kind: 'marker', marker: 'exit' }, bounds: warp.bounds, triangles: warp.triangles });
     }
   }
 

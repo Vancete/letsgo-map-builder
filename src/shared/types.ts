@@ -77,7 +77,7 @@ export interface Catalog {
   assets: AssetEntry[];
 }
 
-export const CATALOG_VERSION = 6;
+export const CATALOG_VERSION = 7;
 
 // ---- map file (.lgmap, JSON)
 

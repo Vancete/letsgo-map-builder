@@ -386,7 +386,8 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     const t = x.trigger ?? { w: 1, d: 1 };
     const r = cellRect(c[0], c[2], t.w, t.d, g.cellSize);
     const center = onGround([(r.cx0 + r.w / 2) * g.cellSize, c[1], (r.cz0 + r.d / 2) * g.cellSize]);
-    triggers.push({ id: x.id, at: center, size: [r.w * g.cellSize, 100, r.d * g.cellSize], event: fnv1a64(`lgmap_${slot}_step_${x.id}`), body: h.body });
+    // (the game takes the area's size as half its extent, from its center)
+    triggers.push({ id: x.id, at: center, size: [(r.w * g.cellSize) / 2, 100, (r.d * g.cellSize) / 2], event: fnv1a64(`lgmap_${slot}_step_${x.id}`), body: h.body });
   }
   // variables: the game's saved works (system_works.tbl's unused slots renamed). Each trigger zone has a work of its own
   // in zone_works.tbl: the game fires it while that work is 0, and its script sets it to 1 first (once per visit: a

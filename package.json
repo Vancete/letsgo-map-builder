@@ -12,6 +12,7 @@
     "extract": "node scripts/extract-cli.ts"
   },
   "dependencies": {
+    "@blockly/field-multilineinput": "5.0.15",
     "blockly": "11.2.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",

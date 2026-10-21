@@ -74,6 +74,7 @@ herramientas solo las de uso continuo (deshacer, mover/rotar/escalar, ajuste a l
 | Ctrl+Z / Ctrl+Y | deshacer / rehacer |
 | Ctrl+N / O / S / Mayús+S | nuevo / abrir / guardar / guardar como |
 | Ctrl+E | exportar al juego |
+| Ctrl+L | lógica (editor de bloques) |
 
 ## La rejilla
 
@@ -206,6 +207,52 @@ Cómo funciona (`src/shared/signs.ts`):
   la izquierda). Salto de línea `0x000A`; `0x0010 0x0001 0xBE00` antes del salto desplaza una línea y `0xBE01` empieza
   ventana nueva. El `.tbl` (AHTB) lista las etiquetas y termina en `msg_<zona>_max`.
 
+## Lógica con bloques
+
+![El editor de bloques: un cartel que cambia de texto cuando se pisa un botón](docs/logic-editor.png)
+
+**🧩 Lógica** (Ctrl+L, o *Añadir lógica* en el inspector de un cartel o de una zona) abre el editor de bloques del mapa
+([Blockly](https://developers.google.com/blockly)): se arrastran bloques desde la izquierda, se encajan o se dejan
+sueltos, la rueda hace zoom y arrastrando el fondo se mueve uno por el lienzo. Solo se ejecuta lo que cuelga de un
+**evento**:
+
+- **Al leer el cartel** *X*: cuando el jugador lee ese cartel con A (sustituye al texto del inspector).
+- **Al pisar la zona** *X*: cuando entra en esa **Zona de activación** (categoría *Objetos de juego*: un rectángulo de
+  casillas que en el juego no se ve; encima se puede poner cualquier objeto para que parezca un botón). Una vez por visita
+  al mapa; hasta 6 zonas.
+
+Dentro: **mostrar texto**, **variables** (crear, establecer, cambiar en), **constantes** (número, verdadero/falso),
+**condiciones** (si / si no si / si no; =, ≠, <, ≤, >, ≥; y, o, no; + − ×). Las variables son números (verdadero = 1,
+falso = 0) y **se guardan en la partida**; hasta 15 por mapa. Los avisos (un bloque sin valor, un evento sin objeto...)
+salen abajo a la derecha y al exportar.
+
+El ejemplo [`examples/cartel-y-boton.lgmap`](examples/cartel-y-boton.lgmap) es el de la imagen; en el juego:
+
+![El cartel antes, el botón y el cartel después](docs/logic-game.png)
+
+Cómo se lleva al juego (`src/shared/logic.ts`, `src/shared/amxgen.ts`):
+
+- La lógica se guarda en el mapa (`logic`) como el JSON de Blockly; la exportación lo lee sin Blockly y lo convierte en
+  un pequeño programa (eventos, sentencias, expresiones).
+- **El script** de la zona se genera: el de Pueblo Paleta (`town001.amx`, por sus funciones de mensaje) con nuestro
+  código **añadido al final de su código** (en Pawn las llamadas y los saltos son relativos y los datos se direccionan
+  desde su propia sección, así que nada se mueve), una función principal nueva (el punto de entrada `cip`) que compara el
+  hash del evento (global 0) con los nuestros, y una nativa más en su tabla (`WorkSet`; hay que mover detrás las demás
+  tablas y las secciones, incluido el campo `overlays` de la cabecera de Pawn 3.3: sin moverlo el juego se colgaba).
+  Las expresiones dejan su valor en PRI; los operadores binarios llevan la izquierda en ALT.
+- **Mostrar texto** en un cartel llama a la función de los carteles de Paleta (`0x1d80`: gira al jugador, abre la
+  ventana, espera y la cierra); en una zona, a la de mensaje sin girar (`0xf40`) y luego a esperar (`0xe80`) y cerrar
+  (`0xdb8`). Cada texto es una línea del archivo de mensajes de la zona.
+- **Las variables** son *works* del juego (`WorkGet(hash)`, `WorkSet(hash, valor)`), que se guardan en la partida: los
+  nombres de los works están en `bin/flagwork/*.tbl` (AHTB: el hash del nombre da su casilla en la partida, por orden) y
+  `system_works.tbl` tiene 15 casillas llamadas `NOUSED`; el mod las renombra (`LGMAP_WORK_01`...).
+- **Las zonas** son entradas de la **lista 14** del placement (las que el juego usa para escenas al pasar por un sitio):
+  posición, un área (su tamaño es **medio lado**, desde el centro), el hash del evento, y un work con un valor: el juego
+  solo la dispara mientras ese work vale eso. Si la condición sigue cumpliéndose, se dispara una y otra vez mientras el
+  jugador sigue dentro; por eso cada zona tiene su work (en `zone_works.tbl`, que tiene 6 casillas libres) y su script lo
+  pone a 1 antes de nada.
+- Los eventos de carteles y zonas se registran en `script_id_record.bin` con el script y los mensajes de la zona.
+
 ## Zonas de hierba y Pokémon salvajes
 
 ![Una zona de hierba en el editor: tamaño, niveles y tabla de Pokémon en el inspector](docs/editor-grass.png)
@@ -250,8 +297,9 @@ juego las tiene registradas (con su modelo, colisiones, terreno y placement) per
 | `bin/field/param/terrain/<hueco>/terrain_data.bin` | el bloque de terreno del hueco, con el tamaño del mapa (y altura) |
 | `bin/archive/field/placement.gfpak` | el placement del hueco (ajustes de un mapa exterior, sin los personajes de prueba, con la baldosa de vuelta y los carteles); el de `area02` con el teletransportador en Pueblo Paleta |
 | `bin/archive/script_amx.gfpak` | los scripts que toda zona necesita (`<zona>.amx`, `init_<zona>.amx`); las salas de prueba no los tienen y sin ellos el juego se cuelga al entrar. Con carteles, el de la zona es el que los atiende |
-| `bin/script/param/script_id/script_id_record.bin` | (con carteles) sus eventos, con su script y sus mensajes |
-| `bin/message/<idioma>/script/<hueco>.dat/.tbl` | (con carteles) sus textos |
+| `bin/script/param/script_id/script_id_record.bin` | (con carteles o lógica) sus eventos, con su script y sus mensajes |
+| `bin/message/<idioma>/script/<hueco>.dat/.tbl` | (con carteles o lógica) sus textos |
+| `bin/flagwork/system_works.tbl`, `zone_works.tbl` | (con variables o zonas de activación) los nombres de sus works |
 | `bin/field/model/<hueco>/<hueco>_gN_zone/_enc.gfbcol` | forma de cada zona de hierba y de su parche de hierba |
 | `bin/field/param/encount/encount_data_p/_e.bin` | las tablas de Pokémon salvajes de las zonas de hierba |
 | `bin/field/param/placement/table/ZoneNameHashTable.tbl` | los nombres de las zonas nuevas |
@@ -316,7 +364,10 @@ Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
   reemplaza `placement.gfpak` y `script_amx.gfpak` enteros (y, con carteles, `script_id_record.bin`).
 - Las elevaciones y escaleras van alineadas a la rejilla; las escaleras suben en línea recta. Las texturas de los lados y
   las escaleras usan un material de objeto, sin la mezcla de hierba en el borde de los acantilados del juego.
-- Los carteles responden en la zona base del mapa (no se ha probado uno dentro de una zona de hierba); hasta 8.
+- Los carteles y las zonas de activación responden en la zona base del mapa (no se ha probado dentro de una zona de
+  hierba). Zonas de activación: hasta 6, y una vez por visita. Variables: hasta 15, solo números.
+- La lógica es sencilla de momento: eventos de leer y pisar, textos, variables y condiciones (sin bucles, sin preguntas
+  sí/no, sin dar objetos ni mover personajes).
 - Las zonas completas y los objetos animados (puertas) se exportan como geometría fija. Las matas de hierba alta sueltas
   del catálogo también: para encuentros hay que usar una *Zona de hierba alta*.
 - Las zonas de hierba son rectángulos alineados a la rejilla (no giran) y su tabla es la misma en Pikachu y Eevee; no
@@ -328,6 +379,8 @@ Notas de cómo se llegó a esto, por si alguien sigue el trabajo:
 - Elegir en el editor el mapa y el sitio del teletransportador de entrada.
 - Bordes de acantilado con la hierba del juego (su `FieldCliffShader01`), rampas y escaleras en curva.
 - Carteles con otros modelos y NPCs que hablan (la misma vía: lista de personajes + evento + script).
+- Más bloques: preguntas sí/no, dar objetos, combates, mover y girar personajes, sonidos, esperar; zonas que se
+  rearman al salir de ellas.
 - Pokémon en el agua y voladores (las mismas tablas tienen esos bloques), tablas distintas para Pikachu y Eevee.
 - NPCs y objetos del juego (otras listas de placement).
 - Los materiales del visor se aproximan con iluminación Lambert; los shaders de terreno que mezclan varias texturas
@@ -343,7 +396,10 @@ src/shared/placement.ts  placement del juego: warps, teletransportadores, listas
 src/shared/mapbuild.ts   exportación al juego (modelo fusionado, pak, colisiones, terreno, placement, scripts)
 src/shared/terrain.ts    alturas por casilla: suelo, acantilados, saltos, escaleras y sus superficies
 src/shared/collision.ts  archivos .gfbcol (nombres por polígono, color por vértice)
-src/shared/signs.ts      carteles: AMX compacto, parche del script, mensajes cifrados, registro de eventos
+src/shared/signs.ts      carteles: AMX compacto, mensajes cifrados, registro de eventos, works renombrados
+src/shared/logic.ts      la lógica de bloques: lee el JSON de Blockly
+src/shared/amxgen.ts     genera el script de la zona (AMX) desde los carteles y la lógica
+src/renderer/src/logic/  los bloques del editor (Blockly)
 src/shared/encounters.ts zonas de hierba: zonas nuevas, parches de vegetación, tablas de salvajes, nombres de zona
 src/shared/pokemon.ts    especies de Let's Go
 src/main/             proceso principal de Electron (ajustes, catálogo en un worker, archivos, mods)

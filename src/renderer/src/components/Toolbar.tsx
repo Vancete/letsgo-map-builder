@@ -1,7 +1,7 @@
 // The tools used all the time (the rest is in the menu bar): undo, the gizmo's mode, snapping, the view, and the
 // export to the game.
 import { useEditor } from '../store';
-import { exportMod } from '../actions';
+import { exportMod, openLogic } from '../actions';
 
 export function Toolbar() {
   const tool = useEditor((s) => s.tool);
@@ -49,6 +49,9 @@ export function Toolbar() {
       <button className={topView ? 'active' : ''} onClick={() => e().toggleTopView()} title="Vista cenital (T)">⬒ Cenital</button>
       <button onClick={() => window.dispatchEvent(new Event('lg:focus'))} title="Encuadrar selección (F)">◎</button>
       <div className="spacer" />
+      <button onClick={() => openLogic()} title="Editor de bloques: qué pasa al leer carteles o pisar zonas (Ctrl+L)">
+        🧩 Lógica
+      </button>
       <button className="primary" onClick={exportMod} title="Crear un mod de Let's Go Recomp con el mapa, al que se llega con un teletransportador desde Pueblo Paleta (Ctrl+E)">
         🎮 Exportar al juego
       </button>

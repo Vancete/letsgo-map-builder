@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, cellRect, defaultGrass, defaultStairs, defaultTerrain, grassRect, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
+import { GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, TRIGGER_ASSET, cellRect, defaultGrass, defaultStairs, defaultTerrain, grassRect, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
 import { buildTerrain, stairsDir, stairsSize, type Surface, type TerrainShape } from '@shared/terrain';
 import { getTemplate, getTexture, placeholder } from './models';
 import type { SnapSettings, Tool } from '../store';
@@ -175,6 +175,9 @@ export class SceneView {
       if (o.asset === GRASS_ASSET) {
         info.node.rotation.set(0, 0, 0); // grass zones follow the grid's cells
         this.layoutGrass(info);
+      } else if (o.asset === TRIGGER_ASSET) {
+        info.node.rotation.set(0, 0, 0);
+        this.layoutTrigger(info);
       }
     }
     // parents (after every node exists)
@@ -326,9 +329,32 @@ export class SceneView {
     this.refreshSelBoxes();
   }
 
+  // a trigger zone: an orange patch over its cells
+  private layoutTrigger(info: NodeInfo) {
+    if (!this.doc) return;
+    const g = this.doc.grid;
+    const t = info.obj.trigger ?? { w: 1, d: 1 };
+    const p = info.node.position;
+    const r = cellRect(p.x - g.originX, p.z - g.originZ, t.w, t.d, g.cellSize);
+    const key = `${r.cx0},${r.cz0},${r.w},${r.d},${p.x},${p.z}`;
+    if (info.grassKey === key) return;
+    info.grassKey = key;
+    for (const c of [...info.node.children]) c.removeFromParent();
+    const W = r.w * g.cellSize, D = r.d * g.cellSize;
+    const x = g.originX + r.cx0 * g.cellSize - p.x + W / 2, z = g.originZ + r.cz0 * g.cellSize - p.z + D / 2;
+    const patch = new THREE.Mesh(new THREE.PlaneGeometry(W - 6, D - 6).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff8a26, transparent: true, opacity: 0.45, depthWrite: false }));
+    patch.position.set(x, 4, z);
+    patch.renderOrder = 1;
+    const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(W, 30, D)), new THREE.LineBasicMaterial({ color: 0xffb066 }));
+    edge.position.set(x, 15, z);
+    info.node.add(patch, edge);
+    info.loaded = true;
+    this.refreshSelBoxes();
+  }
+
   private loadContent(info: NodeInfo) {
     const assetId = info.obj.asset;
-    if (!assetId || assetId === GRASS_ASSET || assetId === TERRAIN_ASSET || assetId === STAIRS_ASSET) return;
+    if (!assetId || assetId === GRASS_ASSET || assetId === TERRAIN_ASSET || assetId === STAIRS_ASSET || assetId === TRIGGER_ASSET) return;
     getTemplate(assetId)
       .then((t) => {
         if (!this.nodes.has(info.obj.id)) return;

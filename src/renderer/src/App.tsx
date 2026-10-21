@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useEditor } from './store';
 import { useUi } from './ui';
-import { confirmDiscard, exportMod, generateThumbs, newMap, openMap, saveMap } from './actions';
+import { confirmDiscard, exportMod, generateThumbs, newMap, openLogic, openMap, saveMap } from './actions';
+import { LogicEditor } from './components/LogicEditor';
 import { SetupScreen, BuildScreen } from './components/Setup';
 import { Toolbar } from './components/Toolbar';
 import { MenuBar } from './components/MenuBar';
@@ -51,6 +52,7 @@ export function App() {
       {phase === 'setup' && <SetupScreen />}
       {phase === 'building' && <BuildScreen />}
       {phase === 'ready' && <Editor />}
+      {phase === 'ready' && <LogicEditor />}
       <Modals />
     </>
   );
@@ -59,6 +61,7 @@ export function App() {
 function useShortcuts() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (useUi.getState().logicOpen) return; // the block editor has its own keys
       const t = e.target as HTMLElement;
       const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
       const s = useEditor.getState();
@@ -76,6 +79,9 @@ function useShortcuts() {
         } else if (k === 'e') {
           e.preventDefault();
           exportMod();
+        } else if (k === 'l') {
+          e.preventDefault();
+          openLogic();
         } else if (typing) return;
         else if (k === 'z' && !e.shiftKey) {
           e.preventDefault();

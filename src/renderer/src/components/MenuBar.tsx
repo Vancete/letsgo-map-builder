@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useEditor } from '../store';
 import { useUi } from '../ui';
-import { changeGameFolder, confirmDiscard, exportMod, generateThumbs, newMap, openMap, rebuildCatalog, saveMap } from '../actions';
+import { changeGameFolder, confirmDiscard, exportMod, generateThumbs, newMap, openLogic, openMap, rebuildCatalog, saveMap } from '../actions';
 
 type Item =
   | { sep: true }
@@ -34,7 +34,7 @@ function showControls() {
         'X: ajuste a la rejilla · G: rejilla · T: vista cenital · F: encuadrar',
         'Ctrl+D duplicar · Ctrl+G agrupar · Supr eliminar · Ctrl+A seleccionar todo',
         'Ctrl+Z / Ctrl+Y: deshacer / rehacer',
-        'Ctrl+N / O / S / Mayús+S: nuevo / abrir / guardar / guardar como · Ctrl+E: exportar al juego',
+        'Ctrl+N / O / S / Mayús+S: nuevo / abrir / guardar / guardar como · Ctrl+E: exportar al juego · Ctrl+L: lógica',
       ].join('\n'),
       [{ label: 'Cerrar', value: 'ok', primary: true }],
     );
@@ -115,6 +115,8 @@ export function MenuBar() {
         { label: 'Rejilla', keys: 'G', checked: showGrid, action: () => ed().toggleGrid() },
         { label: 'Vista cenital', keys: 'T', checked: topView, action: () => ed().toggleTopView() },
         { label: 'Encuadrar la selección', keys: 'F', action: () => window.dispatchEvent(new Event('lg:focus')) },
+        { sep: true },
+        { label: 'Lógica del mapa (bloques)…', keys: 'Ctrl+L', action: () => openLogic() },
         { sep: true },
         { label: 'Ajustar a la rejilla', keys: 'X', checked: snap.enabled, action: () => ed().setSnap({ enabled: !snap.enabled }) },
       ],
