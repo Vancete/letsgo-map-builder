@@ -128,17 +128,4 @@ export function grassPatchMaker(tplEd: FBEditor, tplElem: number, at: [number, n
   };
 }
 
-// cells (cx, cz) of size `cell` as quads, around (ox, oz): vertices and triangles for a .gfbcol
-export function cellsMesh(cells: [number, number][], cell: number, ox: number, oz: number): { verts: number[]; idx: number[] } {
-  const verts: number[] = [];
-  const idx: number[] = [];
-  for (const [cx, cz] of cells) {
-    const x0 = cx * cell - ox, z0 = cz * cell - oz;
-    const b = verts.length / 3;
-    verts.push(x0, 0, z0, x0 + cell, 0, z0, x0, 0, z0 + cell, x0 + cell, 0, z0 + cell);
-    idx.push(b, b + 2, b + 1, b + 1, b + 2, b + 3);
-  }
-  return { verts, idx };
-}
-
 export { FNV64_OFFSET };

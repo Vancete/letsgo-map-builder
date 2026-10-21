@@ -119,6 +119,39 @@ export function editZoneList(file: Uint8Array, zoneIndex: number, list: number, 
   return ed.data;
 }
 
+// The map's settings taken from another map: the root's scalar fields (6 outdoor, 7..9 and 11/12 outdoor lighting,
+// 13..18 the shadow volume around the camera, 21..29) are the template's, the name (1) and the children (0 zones,
+// 2..4 lists, 5 transform) this map's own. The root is written again at the end with the template's layout, so fields
+// the map lacks are added.
+export function rootSettingsFrom(file: Uint8Array, template: Uint8Array, zoneSchema: Schema): Uint8Array {
+  const ed = new FBEditor(file);
+  const tpl = new FBEditor(template);
+  const root = ed.u32(0);
+  const tplRoot = tpl.u32(0);
+  const own = (idx: number, copy: (p: number) => number) => () => {
+    const c = ed.child(root, idx);
+    return c ? copy(c) : ed.vectorOfTables([]);
+  };
+  const vec = (p: number) => (ed.u32(p) === 0 ? ed.vectorOfTables([]) : ed.cloneVector(p, ed.vectorKind(p) ?? 'table', 0));
+  const children: Record<number, () => number> = {
+    0: own(0, (p) => ed.vectorOfTables(ed.vectorElems(p).map((z) => () => cloneWithSchema(ed, ed, z, zoneSchema)))),
+    2: own(2, vec),
+    3: own(3, vec),
+    4: own(4, vec),
+    5: own(5, (p) => ed.cloneDeep(p)),
+  };
+  for (const i of Object.keys(children).map(Number))
+    if (!tpl.fieldPos(tplRoot, i) || !ed.fieldPos(root, i)) throw new Error(`placement: root field ${i} missing`);
+  const nr = ed.cloneTable(
+    tplRoot,
+    Object.fromEntries(Object.entries(children).map(([i, make]) => [i, () => make()])),
+    tpl,
+  );
+  ed.setU64(ed.fieldPos(nr, 1), new DataView(ed.buf.buffer).getBigUint64(ed.fieldPos(root, 1), true));
+  ed.setRoot(nr);
+  return ed.data;
+}
+
 export function zoneIndexOf(file: Uint8Array, zoneName: string): number {
   return readZones(file).findIndex((z) => z.hash === fnv1a64(zoneName));
 }

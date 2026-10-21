@@ -17,8 +17,9 @@ import { FBEditor, buildTable, cloneWithSchema, learnSchema, type FieldSpec, typ
 import { Gfpak, fnv1a64, writeGfpak, type GfpakEntry } from './formats/gfpak.ts';
 import { boneWorldMatrices, isIdentity, parseGfbmdl, type GfModel } from './formats/gfbmdl.ts';
 import type { GameFS } from './formats/gamefs.ts';
-import { Templates, addTeleporter, editZoneList, learnZoneSchema, placementPath, zoneIndexOf } from './placement.ts';
-import { ENCOUNT_FILES, ZONE_NAME_TABLE, addEncounterTables, addHashNames, addZone, cellsMesh, grassPatchMaker } from './encounters.ts';
+import { Templates, addTeleporter, editZoneList, learnZoneSchema, placementPath, rootSettingsFrom, zoneIndexOf } from './placement.ts';
+import { ENCOUNT_FILES, ZONE_NAME_TABLE, addEncounterTables, addHashNames, addZone, grassPatchMaker } from './encounters.ts';
+import { addQuads, cellsMesh, gfbcol, wallQuad, type ColMesh } from './collision.ts';
 import { GRASS_ASSET, defaultGrass, grassRect, type AssetEntry, type AssetSource, type Category, type MapDocument, type MapObject, type WildTable } from './types.ts';
 
 export const MAP_SLOTS = ['test_chr01', 'test_chr02', 'test_chr03', 'test_chr04'];
@@ -229,6 +230,39 @@ class Sources {
   }
 }
 
+// The invisible shadow casters (FieldShadowOnlyShader: drawn only into the shadow map, e.g. a tree's crown as a few
+// solid shapes) of a piece of a zone model: the catalog leaves them out of the pieces, so they are found again here,
+// in the piece's family (its group of meshes) and inside the piece's box.
+function shadowCasters(gf: GfModel, family: string, pick: Map<number, Map<number, number[]>>, add: (mesh: number, poly: number, k: number) => void) {
+  const box = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+  for (const [mi, polys] of pick) {
+    const mesh = gf.meshes[mi];
+    for (const [pi, ks] of polys)
+      for (const k of ks)
+        for (let c = 0; c < 3; c++) {
+          const v = mesh.polygons[pi].indices[k * 3 + c];
+          for (let a = 0; a < 3; a++) {
+            box[a] = Math.min(box[a], mesh.position[v * 3 + a]);
+            box[a + 3] = Math.max(box[a + 3], mesh.position[v * 3 + a]);
+          }
+        }
+  }
+  if (!isFinite(box[0])) return;
+  const m = 30;
+  gf.meshes.forEach((mesh, mi) => {
+    const chain: string[] = [];
+    for (let b = mesh.bone, n = 0; b >= 0 && b < gf.bones.length && n < 64; b = gf.bones[b].parent, n++) chain.push(gf.bones[b].name);
+    if (!chain.includes(family)) return;
+    mesh.polygons.forEach((p, pi) => {
+      if (!/ShadowOnly/i.test(gf.materials[p.material]?.shader ?? '')) return;
+      for (let k = 0; k < Math.floor(p.indices.length / 3); k++) {
+        const c = [0, 1, 2].map((a) => (mesh.position[p.indices[k * 3] * 3 + a] + mesh.position[p.indices[k * 3 + 1] * 3 + a] + mesh.position[p.indices[k * 3 + 2] * 3 + a]) / 3);
+        if (c[0] >= box[0] - m && c[0] <= box[3] + m && c[1] >= box[1] - m && c[1] <= box[4] + m && c[2] >= box[2] - m && c[2] <= box[5] + m) add(mi, pi, k);
+      }
+    });
+  });
+}
+
 // ---- the build
 
 interface MatRef {
@@ -347,8 +381,6 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       for (const [pi, ks] of polys) {
         const sp = srcPolys[pi];
         if (!sp) continue;
-        const shader = model.gf.materials[sp.u32(0)]?.shader ?? '';
-        if (/ShadowOnly/i.test(shader)) continue;
         const [fs0] = sp.vec(1);
         const idx: number[] = [];
         for (const k of ks)
@@ -448,6 +480,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       const dv = new DataView(sel.buffer, sel.byteOffset, sel.byteLength);
       const n = dv.getUint32(0, true);
       for (let i = 0; i < n; i++) add(dv.getUint16(4 + i * 8, true), dv.getUint16(6 + i * 8, true), dv.getUint32(8 + i * 8, true));
+      shadowCasters(model.gf, s.family, pick, add);
     } else {
       model.gf.meshes.forEach((mesh, mi) => mesh.polygons.forEach((p, pi) => {
         for (let k = 0; k < Math.floor(p.indices.length / 3); k++) add(mi, pi, k);
@@ -642,75 +675,27 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     else warnings.push(`textura ${t} no encontrada`);
   }
 
-  // ---- collision
-  // GFBCOL: 0 names {0 name}, 1 {1 bounds}, 2 meshes {0 polygons {1 u16 triangles}, 1 attributes {2 count: 3
-  // floats}, 2 vertex data}, 3 {0 bounds, 1 u32 list of meshes}
-  const colFile = (kind: string, verts: number[], indices: number[]) => {
-    const c = new FBEditor(new Uint8Array(8));
-    const b = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
-    for (let i = 0; i < verts.length; i += 3)
-      for (let k = 0; k < 3; k++) {
-        b[k] = Math.min(b[k], verts[i + k]);
-        b[k + 3] = Math.max(b[k + 3], verts[i + k]);
-      }
-    const box = new Uint8Array(new Float32Array(b).buffer);
-    const r = buildTable(c, [
-      { idx: 0, child: (x) => x.vectorOfTables([() => buildTable(x, [{ idx: 0, child: (y) => y.string(`col_${kind}`) }])]) },
-      { idx: 1, child: (x) => x.vectorOfTables([() => buildTable(x, [{ idx: 1, bytes: box, align: 4 }])]) },
-      {
-        idx: 2,
-        child: (x) =>
-          x.vectorOfTables([
-            () =>
-              buildTable(x, [
-                { idx: 0, child: (y) => y.vectorOfTables([() => buildTable(y, [{ idx: 1, child: (z) => z.bytesVector(new Uint8Array(Uint16Array.from(indices).buffer), 2) }])]) },
-                { idx: 1, child: (y) => y.vectorOfTables([() => buildTable(y, [{ idx: 2, u32: 3 }])]) },
-                { idx: 2, child: (y) => y.bytesVector(new Uint8Array(Float32Array.from(verts).buffer), 1) },
-              ]),
-          ]),
-      },
-      {
-        idx: 3,
-        child: (x) =>
-          buildTable(x, [
-            { idx: 0, bytes: box, align: 4 },
-            { idx: 1, child: (y) => y.bytesVector(new Uint8Array(4), 4) },
-          ]),
-      },
-    ]);
-    c.setRoot(r);
-    return c.data;
-  };
-  const quads = (list: number[][], verts: number[], idx: number[]) => {
-    for (const q of list) {
-      const base = verts.length / 3;
-      verts.push(...q);
-      idx.push(base, base + 1, base + 2, base + 2, base + 1, base + 3);
-      idx.push(base, base + 2, base + 1, base + 2, base + 3, base + 1); // both sides
-    }
-  };
-  const fv: number[] = [], fi: number[] = [];
-  quads([[0, 0, 0, W, 0, 0, 0, 0, D, W, 0, D]], fv, fi);
-  const wv: number[] = [], wi: number[] = [];
-  const wall = (x0: number, z0: number, x1: number, z1: number, lo: number, hi: number) => [x0, lo, z0, x1, lo, z1, x0, hi, z0, x1, hi, z1];
+  // ---- collision (see collision.ts)
+  const floor: ColMesh = { verts: [], idx: [] };
+  addQuads(floor, [[0, 0, 0, W, 0, 0, 0, 0, D, W, 0, D]]);
+  const wallMesh: ColMesh = { verts: [], idx: [] };
   const lo = -100, hi = 500;
-  quads([wall(0, 0, W, 0, lo, hi), wall(W, 0, W, D, lo, hi), wall(W, D, 0, D, lo, hi), wall(0, D, 0, 0, lo, hi)], wv, wi);
+  addQuads(wallMesh, [wallQuad(0, 0, W, 0, lo, hi), wallQuad(W, 0, W, D, lo, hi), wallQuad(W, D, 0, D, lo, hi), wallQuad(0, D, 0, 0, lo, hi)]);
   for (const [x0, z0, x1, z1] of walls)
-    quads([wall(x0, z0, x1, z0, lo, hi), wall(x1, z0, x1, z1, lo, hi), wall(x1, z1, x0, z1, lo, hi), wall(x0, z1, x0, z0, lo, hi)], wv, wi);
-  let zv: number[] = [], zi: number[] = [];
-  if (!grass.length) quads([[0, 0, 0, W, 0, 0, 0, 0, D, W, 0, D]], zv, zi);
+    addQuads(wallMesh, [wallQuad(x0, z0, x1, z0, lo, hi), wallQuad(x1, z0, x1, z1, lo, hi), wallQuad(x1, z1, x0, z1, lo, hi), wallQuad(x0, z1, x0, z0, lo, hi)]);
+  let zoneMesh: ColMesh = { verts: [], idx: [] };
+  if (!grass.length) addQuads(zoneMesh, [[0, 0, 0, W, 0, 0, 0, 0, D, W, 0, D]]);
   else {
     // the base zone: every cell but the grass zones' (zones don't overlap)
     const rest: [number, number][] = [];
     for (let i = 0; i < g.width; i++) for (let k = 0; k < g.depth; k++) if (!grassCells.has(`${i},${k}`)) rest.push([i, k]);
-    ({ verts: zv, idx: zi } = cellsMesh(rest, cell, 0, 0));
+    zoneMesh = cellsMesh(rest, cell, 0, 0);
   }
   const grassFiles: { path: string; data: Uint8Array }[] = [];
   for (const gz of grass) {
-    const shape = cellsMesh(gz.cells, cell, 0, 0); // the zone: slot coordinates
-    grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_zone.gfbcol`, data: colFile('zone', shape.verts, shape.idx) });
+    grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_zone.gfbcol`, data: gfbcol('col_zone', cellsMesh(gz.cells, cell, 0, 0)) }); // the zone: slot coordinates
     const patch = cellsMesh(gz.cells, cell, gz.center[0], gz.center[2]); // the patch: around its position
-    grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_enc.gfbcol`, data: colFile('enc', patch.verts, patch.idx) });
+    grassFiles.push({ path: `bin/field/model/${slot}/${gz.name}_enc.gfbcol`, data: gfbcol('col_enc', patch, { color: [255, 255, 255, 255] }) });
   }
 
   // ---- terrain block: the map's size
@@ -729,18 +714,17 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     if (f.pathHash === fnv1a64(placementPath(slot))) {
       data = editZoneList(data, 0, 1, [], false); // the test characters
       data = addTeleporter(data, 0, tpl, { id: `lgmap_${slot}_exit`, at: exit!, destMap: entrance.map, destZone: entrance.zone, arrive: entrance.back });
-      const pe = new FBEditor(data);
-      const pr = pe.u32(0);
-      [-1000, -1024, -1000, W + 1000, 1024, D + 1000].forEach((v, i) => pe.setFieldF32(pr, 13 + i, v));
-      data = pe.data;
+      const area02Data = ppak.read(ppak.byPath(placementPath('area02'))!);
+      const zoneSchema = learnZoneSchema(ppak.files.map((x) => ppak.read(x)));
+      // an outdoor map's settings (the slot's are an indoor test room's): lighting, shadow volume...
+      data = rootSettingsFrom(data, area02Data, zoneSchema);
       // a zone per grass zone, with its patch of tall grass
-      const area02 = new FBEditor(ppak.read(ppak.byPath(placementPath('area02'))!));
+      const area02 = new FBEditor(area02Data);
       const tplZone = area02.vectorElems(area02.child(area02.u32(0), 0)).find((z) => {
         const l = area02.child(z, 5);
         return l && area02.vectorElems(l).some((e) => area02.readString(area02.child(area02.child(e, 0), 2)).includes('enc_grass'));
       })!;
       const tplPatch = area02.vectorElems(area02.child(tplZone, 5)).find((e) => area02.readString(area02.child(area02.child(e, 0), 2)).includes('enc_grass'))!;
-      const zoneSchema = learnZoneSchema(ppak.files.map((x) => ppak.read(x)));
       for (const gz of grass) {
         const added = addZone(data, 0, gz.name, `bin/field/model/${slot}/${gz.name}_zone.gfbcol`, zoneSchema);
         data = editZoneList(added.data, added.index, 5, [
@@ -768,9 +752,9 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     files: [
       { path: slotModelPath, data: modelData },
       { path: packPath, data: writeGfpak(entries) },
-      { path: `bin/field/model/${slot}/${slot}_floor.gfbcol`, data: colFile('floor', fv, fi) },
-      { path: `bin/field/model/${slot}/${slot}_wall.gfbcol`, data: colFile('wall', wv, wi) },
-      { path: `bin/field/model/${slot}/${slot}_zone.gfbcol`, data: colFile('zone', zv, zi) },
+      { path: `bin/field/model/${slot}/${slot}_floor.gfbcol`, data: gfbcol('col_floor', floor) },
+      { path: `bin/field/model/${slot}/${slot}_wall.gfbcol`, data: gfbcol('col_wall', wallMesh) },
+      { path: `bin/field/model/${slot}/${slot}_zone.gfbcol`, data: gfbcol('col_zone', zoneMesh) },
       { path: terrainPath, data: te.data },
       { path: 'bin/archive/field/placement.gfpak', data: writeGfpak(pentries) },
       { path: 'bin/archive/script_amx.gfpak', data: writeGfpak(sentries) },

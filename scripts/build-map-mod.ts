@@ -21,6 +21,7 @@ const r = buildMapMod({
     const p = join(cacheDir, 'models', `${id}.sel`);
     return existsSync(p) ? new Uint8Array(readFileSync(p)) : null;
   },
+  baseGround: process.env.BASE_GROUND !== '0', // BASE_GROUND=0: without the slot's ground
   log: console.log,
 });
 for (const f of r.files) {
