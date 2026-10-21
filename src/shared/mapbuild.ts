@@ -17,12 +17,14 @@ import { FBEditor, buildTable, cloneWithSchema, learnSchema, type FieldSpec, typ
 import { Gfpak, fnv1a64, writeGfpak, type GfpakEntry } from './formats/gfpak.ts';
 import { boneWorldMatrices, isIdentity, parseGfbmdl, type GfModel } from './formats/gfbmdl.ts';
 import type { GameFS } from './formats/gamefs.ts';
-import { LIST_INSPECT, Templates, addTeleporter, editZoneList, signMaker, learnZoneSchema, placementPath, rootSettingsFrom, zoneIndexOf } from './placement.ts';
+import { LIST_INSPECT, LIST_STEP, Templates, addTeleporter, editZoneList, signMaker, stepTriggerMaker, learnZoneSchema, placementPath, rootSettingsFrom, zoneIndexOf } from './placement.ts';
 import { ENCOUNT_FILES, ZONE_NAME_TABLE, addEncounterTables, addHashNames, addZone, grassPatchMaker } from './encounters.ts';
 import { addQuads, cellsMesh, gfbcol, wallQuad, type ColMesh } from './collision.ts';
 import { buildTerrain, stairsSize, WALL_NAMES, type Surface, type TerrainShape } from './terrain.ts';
-import { LANGUAGES, MAX_SIGNS, SCRIPT_RECORD, addScriptRecords, labelTable, messageFile, signScript } from './signs.ts';
-import { GRASS_ASSET, SIGN_ASSET, SIGN_MODEL, STAIRS_ASSET, TERRAIN_ASSET, cellRect, defaultGrass, defaultStairs, defaultTerrain, grassRect, type AssetEntry, type AssetSource, type Category, type MapDocument, type MapObject, type WildTable } from './types.ts';
+import { LANGUAGES, SCRIPT_RECORD, SYSTEM_WORKS, ZONE_WORKS, addScriptRecords, labelTable, messageFile, renameUnused } from './signs.ts';
+import { buildZoneScript, type ScriptHandler } from './amxgen.ts';
+import { readProgram, usedVariables, type WorkspaceJson } from './logic.ts';
+import { GRASS_ASSET, SIGN_ASSET, SIGN_MODEL, STAIRS_ASSET, TERRAIN_ASSET, TRIGGER_ASSET, cellRect, defaultGrass, defaultStairs, defaultTerrain, grassRect, type AssetEntry, type AssetSource, type Category, type MapDocument, type MapObject, type WildTable } from './types.ts';
 
 export const MAP_SLOTS = ['test_chr01', 'test_chr02', 'test_chr03', 'test_chr04'];
 
@@ -57,7 +59,7 @@ export interface MapBuildResult {
 export const SPAWN_ASSET = 'lg.spawn';
 export const EXIT_ASSET = 'lg.exit';
 // the editor's own objects: not models
-const EDITOR_ASSETS = [SPAWN_ASSET, EXIT_ASSET, GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET];
+const EDITOR_ASSETS = [SPAWN_ASSET, EXIT_ASSET, GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET, TRIGGER_ASSET];
 
 const SOLID: Category[] = ['pc', 'shop', 'gym', 'building', 'tree', 'rock', 'fence', 'street', 'water'];
 
@@ -358,19 +360,43 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   }
   if (!exit) exit = onGround([spawn[0], spawn[1], spawn[2] + 3 * g.cellSize]);
 
-  // signs: where they are, which way they face, their text (a script event and a message each, signs.ts)
-  const signs: { at: [number, number, number]; rotY: number; text: string; label: string }[] = [];
+  // the map's logic (blocks: logic.ts) and what runs it: signs (read with A) and trigger zones (walked into), each a
+  // script event (signs.ts, amxgen.ts)
+  const program = readProgram(o.doc.logic as WorkspaceJson | undefined);
+  warnings.push(...program.errors.map((e) => `lógica: ${e}`));
+  const handlerOf = (event: 'read' | 'step', id: string) => program.handlers.find((h) => h.event === event && h.object === id);
+  const signs: { id: string; at: [number, number, number]; rotY: number; event: bigint; body: ScriptHandler['body'] }[] = [];
   for (const x of o.doc.objects) {
     if (x.asset !== SIGN_ASSET || !visible(x)) continue;
-    if (signs.length >= MAX_SIGNS) {
-      warnings.push(`${x.name}: como mucho ${MAX_SIGNS} carteles por mapa`);
-      continue;
-    }
     const m = mul(toSlot, worldMatrix(x, byId));
     const f = applyDir(m, 0, 0, 1);
-    const text = x.sign?.text?.trim() || '...';
-    signs.push({ at: onGround(apply(m, 0, 0, 0)), rotY: (Math.atan2(f[0], f[2]) * 180) / Math.PI, text, label: `msg_${slot}_sign_${String(signs.length + 1).padStart(2, '0')}` });
+    // its logic, or else its own text
+    const body = handlerOf('read', x.id)?.body ?? [{ k: 'text' as const, text: x.sign?.text?.trim() || '...' }];
+    signs.push({ id: x.id, at: onGround(apply(m, 0, 0, 0)), rotY: (Math.atan2(f[0], f[2]) * 180) / Math.PI, event: fnv1a64(`lgmap_${slot}_read_${x.id}`), body });
   }
+  const triggers: { id: string; at: [number, number, number]; size: [number, number, number]; event: bigint; body: ScriptHandler['body'] }[] = [];
+  for (const x of o.doc.objects) {
+    if (x.asset !== TRIGGER_ASSET || !visible(x)) continue;
+    const h = handlerOf('step', x.id);
+    if (!h) {
+      warnings.push(`${x.name}: zona de activación sin lógica (bloque "Al pisar")`);
+      continue;
+    }
+    const c = apply(mul(toSlot, worldMatrix(x, byId)), 0, 0, 0);
+    const t = x.trigger ?? { w: 1, d: 1 };
+    const r = cellRect(c[0], c[2], t.w, t.d, g.cellSize);
+    const center = onGround([(r.cx0 + r.w / 2) * g.cellSize, c[1], (r.cz0 + r.d / 2) * g.cellSize]);
+    triggers.push({ id: x.id, at: center, size: [r.w * g.cellSize, 100, r.d * g.cellSize], event: fnv1a64(`lgmap_${slot}_step_${x.id}`), body: h.body });
+  }
+  // variables: the game's saved works (system_works.tbl's unused slots renamed). Each trigger zone has a work of its own
+  // in zone_works.tbl: the game fires it while that work is 0, and its script sets it to 1 first (once per visit: a
+  // trigger whose condition stays true fires again and again while the player stands in it)
+  const varIds = usedVariables(program);
+  const varWork = new Map(varIds.map((id, i) => [id, `LGMAP_WORK_${String(i + 1).padStart(2, '0')}`]));
+  const armWork = (i: number) => `LGMAP_ZONE_${String(i + 1).padStart(2, '0')}`;
+  if (triggers.length > 6) warnings.push('como mucho 6 zonas de activación por mapa: el resto no se exporta');
+  triggers.splice(6);
+  const scripted = signs.length > 0 || triggers.length > 0;
 
   // tall-grass zones: cells of the slot's grid (the map's grid starts at the slot's origin)
   const grass: { name: string; cells: [number, number][]; center: [number, number, number]; wild: WildTable }[] = [];
@@ -879,10 +905,14 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       const zoneSchema = learnZoneSchema(ppak.files.map((x) => ppak.read(x)));
       // an outdoor map's settings (the slot's are an indoor test room's): lighting, shadow volume...
       data = rootSettingsFrom(data, area02Data, zoneSchema);
-      // the signs: things to inspect in the map's zone
+      // the signs (things to inspect) and the trigger zones (areas to walk into)
       if (signs.length) {
         const make = signMaker(ppak.files.map((x) => ppak.read(x)), zoneSchema);
-        data = editZoneList(data, 0, LIST_INSPECT, signs.map((sg, i) => make({ id: `lgmap_sign_${i + 1}`, at: sg.at, rotY: sg.rotY, event: fnv1a64(sg.label) })), true, zoneSchema);
+        data = editZoneList(data, 0, LIST_INSPECT, signs.map((sg, i) => make({ id: `lgmap_sign_${i + 1}`, at: sg.at, rotY: sg.rotY, event: sg.event })), true, zoneSchema);
+      }
+      if (triggers.length) {
+        const make = stepTriggerMaker(ppak.files.map((x) => ppak.read(x)), zoneSchema);
+        data = editZoneList(data, 0, LIST_STEP, triggers.map((t, i) => make({ id: `lgmap_trigger_${i + 1}`, at: t.at, size: t.size, event: t.event, work: fnv1a64(armWork(i)), value: 0 })), true, zoneSchema);
       }
       // a zone per grass zone, with its patch of tall grass
       const area02 = new FBEditor(area02Data);
@@ -917,20 +947,37 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   const sfolder = spak.files[0].folderHash;
   const empty = spak.read(spak.byPath('bin/script/amx/town010.amx')!); // the empty zone script many zones share
   const init = spak.read(spak.byPath('bin/script/amx/init_town010.amx')!); // only a debug print of the zone name differs
-  // (with signs: Pallet Town's script, patched to show their messages)
-  const zoneScript = signs.length ? signScript(spak.read(spak.byPath('bin/script/amx/town001.amx')!), signs.map((sg) => fnv1a64(sg.label))) : empty;
+  // (with signs or triggers: generated, on Pallet Town's script; every text shown becomes a message of the zone)
+  const texts: string[] = [];
+  const labelOf = (text: string) => {
+    let i = texts.indexOf(text);
+    if (i < 0) i = texts.push(text) - 1;
+    return fnv1a64(`msg_${slot}_t${String(i + 1).padStart(3, '0')}`);
+  };
+  const zoneScript = scripted
+    ? buildZoneScript(
+        spak.read(spak.byPath('bin/script/amx/town001.amx')!),
+        [...signs.map((sg) => ({ event: sg.event, kind: 'sign' as const, body: sg.body })), ...triggers.map((t, i) => ({ event: t.event, kind: 'step' as const, body: t.body, arm: fnv1a64(armWork(i)) }))],
+        { label: labelOf, variable: (id) => fnv1a64(varWork.get(id)!) },
+      )
+    : empty;
   for (const [file, data] of [[`${slot}.amx`, zoneScript], [`init_${slot}.amx`, init], ...grass.flatMap((gz) => [[`${gz.name}.amx`, empty], [`init_${gz.name}.amx`, init]])] as [string, Uint8Array][])
     if (!spak.byPath(`bin/script/amx/${file}`)) sentries.push({ pathHash: fnv1a64(`bin/script/amx/${file}`), nameHash: fnv1a64(file), folderHash: sfolder, data });
     else if (file === `${slot}.amx`) sentries.find((e) => e.pathHash === fnv1a64(`bin/script/amx/${file}`))!.data = data;
-  // the signs' messages, in every language (the test slots' message files exist and are registered)
-  const messageFiles = signs.length
-    ? LANGUAGES.flatMap((lang) => [
-        { path: `bin/message/${lang}/script/${slot}.dat`, data: messageFile(signs.map((sg) => sg.text)) },
-        { path: `bin/message/${lang}/script/${slot}.tbl`, data: labelTable([...signs.map((sg) => sg.label), `msg_${slot}_max`]) },
-      ])
+  // the texts, in every language (the test slots' message files exist and are registered); the events, registered
+  // with the zone's script; the variables' works
+  const labels = texts.map((_, i) => `msg_${slot}_t${String(i + 1).padStart(3, '0')}`);
+  const messageFiles = scripted
+    ? [
+        ...LANGUAGES.flatMap((lang) => [
+          { path: `bin/message/${lang}/script/${slot}.dat`, data: messageFile(texts.length ? texts : ['...']) },
+          { path: `bin/message/${lang}/script/${slot}.tbl`, data: labelTable([...(texts.length ? labels : [`msg_${slot}_t001`]), `msg_${slot}_max`]) },
+        ]),
+        { path: SCRIPT_RECORD, data: addScriptRecords(o.fs.read(SCRIPT_RECORD), [...signs.map((sg) => sg.event), ...triggers.map((t) => t.event)], `bin/script/amx/${slot}.amx`, `script/${slot}.dat`) },
+      ]
     : [];
-  if (signs.length)
-    messageFiles.push({ path: SCRIPT_RECORD, data: addScriptRecords(o.fs.read(SCRIPT_RECORD), signs.map((sg) => fnv1a64(sg.label)), `bin/script/amx/${slot}.amx`, `script/${slot}.dat`) });
+  if (varWork.size) messageFiles.push({ path: SYSTEM_WORKS, data: renameUnused(o.fs.read(SYSTEM_WORKS), [...varWork.values()]).data });
+  if (triggers.length) messageFiles.push({ path: ZONE_WORKS, data: renameUnused(o.fs.read(ZONE_WORKS), triggers.map((_, i) => armWork(i))).data });
 
   return {
     files: [

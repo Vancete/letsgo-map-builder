@@ -59,54 +59,6 @@ export function amxCompact(header: Uint8Array, cells: bigint[]): Uint8Array {
   return out;
 }
 
-// ---- the sign script
-
-const OP_PROC = 46n, OP_RETN = 48n, OP_CALL = 49n, OP_ZERO_PRI = 89n, OP_PUSH_PRI = 36n, OP_CASETBL = 130n;
-const OP_LOAD_P_PRI = 162n, OP_PUSH_P_C = 188n;
-const packed = (op: bigint, param: number) => BigInt.asUintN(64, (BigInt(param) << 32n) | op);
-
-// Pallet Town's script (bin/script/amx/town001.amx) with its event switch and its first sign's function patched; the
-// addresses are this game's (checked before patching)
-const MAIN_CASETBL = 0x2138;
-const SIGN_STUB = 0x2010; // a case of the switch: push 0, call the sign function, jump to the end
-const SIGN_FN = 0x22c0; // the sign function: push 0, push 0xe (window), push label, push 0x18, call the common one
-export const MAX_SIGNS = 8;
-
-export function signScript(town001: Uint8Array, events: bigint[]): Uint8Array {
-  if (events.length > MAX_SIGNS) throw new Error(`como mucho ${MAX_SIGNS} carteles por mapa`);
-  const { header, cells } = amxExpand(town001);
-  const at = (addr: number) => addr / 8;
-  const t = at(MAIN_CASETBL);
-  const fn = at(SIGN_FN);
-  const ok =
-    cells[t] === OP_CASETBL &&
-    cells[t + 1] === 8n &&
-    cells[fn] === OP_PROC &&
-    cells[fn + 1] === packed(OP_PUSH_P_C, 0) &&
-    cells[fn + 2] === packed(OP_PUSH_P_C, 0xe) &&
-    cells[fn + 5] === packed(OP_PUSH_P_C, 0x18) &&
-    cells[fn + 6] === OP_CALL &&
-    cells[fn + 9] === OP_RETN &&
-    cells[at(SIGN_STUB) + 1] === OP_CALL &&
-    at(SIGN_STUB) + 2 + Number(BigInt.asIntN(64, cells[at(SIGN_STUB) + 2])) / 8 - 1 === fn;
-  if (!ok) throw new Error('el script de Pueblo Paleta no es el esperado (otra versión del juego)');
-  // the function: show the message whose label is the event (global 0)
-  cells[fn + 3] = packed(OP_LOAD_P_PRI, 0);
-  cells[fn + 4] = OP_PUSH_PRI;
-  // (cells fn+5.. stay: push 0x18, call the common function, zero, retn)
-  // the switch: each sign's event to the stub; the other entries: the default (nothing but a debug print)
-  const defaultTarget = t + 1 + Number(BigInt.asIntN(64, cells[t + 2])) / 8;
-  for (let k = 0; k < 8; k++) {
-    const rec = t + 3 + k * 2;
-    const ev = events[k];
-    cells[rec] = ev ?? BigInt.asUintN(64, -1n);
-    const target = ev !== undefined ? at(SIGN_STUB) : defaultTarget;
-    cells[rec + 1] = BigInt.asUintN(64, BigInt((target - rec) * 8));
-  }
-  void OP_ZERO_PRI;
-  return amxCompact(header, cells);
-}
-
 // ---- messages (bin/message/<language>/script/<zone>.dat / .tbl)
 
 export const LANGUAGES = ['English', 'French', 'German', 'Italian', 'JPN', 'JPN_KANJI', 'Korean', 'Simp_Chinese', 'Spanish', 'Trad_Chinese'];
@@ -206,4 +158,25 @@ export function addScriptRecords(file: Uint8Array, events: bigint[], script: str
     ]);
   ed.link(field, ed.vectorOfTables([...keep.map(copy), ...events.map(add)]));
   return ed.data;
+}
+
+// ---- saved variables: the game's works are named in bin/flagwork/*.tbl (AHTB, name hash -> slot in the save, in
+// order); system_works.tbl has 15 slots named "NOUSED". Renaming them gives the map variables of its own.
+export const SYSTEM_WORKS = 'bin/flagwork/system_works.tbl';
+export const ZONE_WORKS = 'bin/flagwork/zone_works.tbl'; // 6 unused slots too
+
+export function renameUnused(tbl: Uint8Array, names: string[]): { data: Uint8Array; free: number } {
+  const dv = new DataView(tbl.buffer, tbl.byteOffset, tbl.byteLength);
+  const count = dv.getUint32(4, true);
+  const entries: string[] = [];
+  let p = 8;
+  for (let i = 0; i < count; i++) {
+    const l = dv.getUint16(p + 8, true);
+    entries.push(new TextDecoder().decode(tbl.subarray(p + 10, p + 10 + l - 1)));
+    p += 10 + l;
+  }
+  let k = 0;
+  const renamed = entries.map((n) => (n === 'NOUSED' && k < names.length ? names[k++] : n));
+  if (k < names.length) throw new Error(`no hay sitio para más de ${k} variables`);
+  return { data: labelTable(renamed).subarray(0), free: entries.filter((n) => n === 'NOUSED').length };
 }

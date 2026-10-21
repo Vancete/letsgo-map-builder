@@ -287,3 +287,47 @@ export function signMaker(maps: Uint8Array[], zoneSchema: Schema) {
     return e;
   };
 }
+
+// ---- step triggers: list 14 (an area that runs a script event when the player walks into it)
+//   element: 0 {0 transform (11 the event's hash), 1 kind (2), 2 the area (transform: 6..8 its size), 3 (1),
+//   4 a work's hash and 5 a value: the game only fires it while that work has that value}
+
+export const LIST_STEP = 14;
+
+export function stepTriggerMaker(maps: Uint8Array[], zoneSchema: Schema) {
+  const k = zoneSchema.get(LIST_STEP);
+  if (k?.kind !== 'vtables') throw new Error('placement: no schema for list 14');
+  let tpl: { ed: FBEditor; pos: number } | null = null;
+  for (const m of maps) {
+    const ed = new FBEditor(m);
+    for (const z of ed.vectorElems(ed.child(ed.u32(0), 0))) {
+      const l = ed.child(z, LIST_STEP);
+      for (const e of l ? ed.vectorElems(l) : []) {
+        const o = ed.child(e, 0);
+        const box = o && ed.child(o, 2);
+        if (box && ed.fieldPos(ed.child(o, 0), 11) && ed.fieldPos(box, 6) && ed.fieldPos(box, 7) && ed.fieldPos(box, 8) && ed.fieldPos(o, 4) && ed.fieldPos(o, 5)) {
+          tpl = { ed, pos: e };
+          break;
+        }
+      }
+      if (tpl) break;
+    }
+    if (tpl) break;
+  }
+  if (!tpl) throw new Error('placement: no step trigger template');
+  const t0 = tpl;
+  return (s: { id: string; at: [number, number, number]; size: [number, number, number]; event: bigint; work: bigint; value: number }) => (ed: FBEditor) => {
+    const e = cloneWithSchema(ed, t0.ed, t0.pos, k.schema);
+    const o = ed.child(e, 0);
+    const t = ed.cloneTable(ed.child(o, 0), {}, ed, { 0: f32bits(s.at[0]), 1: f32bits(s.at[1]), 2: f32bits(s.at[2]) });
+    ed.link(ed.fieldPos(o, 0), t);
+    ed.setFieldU64(t, 9, fnv1a64(s.id));
+    ed.setFieldU64(t, 11, s.event);
+    const box = ed.child(o, 2);
+    s.size.forEach((v, i) => ed.setFieldF32(box, 6 + i, v));
+    ed.setFieldF32(box, 4, 0);
+    ed.setFieldU64(o, 4, s.work);
+    ed.setFieldU32(o, 5, s.value);
+    return e;
+  };
+}
