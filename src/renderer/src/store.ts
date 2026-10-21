@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, defaultGrass, defaultStairs, defaultTerrain, emptyMap, type AssetEntry, type Catalog, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
+import { GRASS_ASSET, SIGN_ASSET, STAIRS_ASSET, TERRAIN_ASSET, defaultGrass, defaultStairs, defaultTerrain, emptyMap, type AssetEntry, type Catalog, type MapDocument, type MapGrid, type MapObject } from '@shared/types';
 
 export type Tool = 'translate' | 'rotate' | 'scale';
 
@@ -194,6 +194,7 @@ export const useEditor = create<EditorState>((set, get) => {
         ...(assetId === GRASS_ASSET ? { grass: defaultGrass() } : {}),
         ...(assetId === TERRAIN_ASSET ? { terrain: defaultTerrain() } : {}),
         ...(assetId === STAIRS_ASSET ? { stairs: defaultStairs() } : {}),
+        ...(assetId === SIGN_ASSET ? { sign: { text: 'Escribe aquí el texto del cartel.' } } : {}),
       };
       apply(withObjects([...s.doc.objects, obj]));
       set({ selection: [id] });

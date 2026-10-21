@@ -17,11 +17,12 @@ import { FBEditor, buildTable, cloneWithSchema, learnSchema, type FieldSpec, typ
 import { Gfpak, fnv1a64, writeGfpak, type GfpakEntry } from './formats/gfpak.ts';
 import { boneWorldMatrices, isIdentity, parseGfbmdl, type GfModel } from './formats/gfbmdl.ts';
 import type { GameFS } from './formats/gamefs.ts';
-import { Templates, addTeleporter, editZoneList, learnZoneSchema, placementPath, rootSettingsFrom, zoneIndexOf } from './placement.ts';
+import { LIST_INSPECT, Templates, addTeleporter, editZoneList, signMaker, learnZoneSchema, placementPath, rootSettingsFrom, zoneIndexOf } from './placement.ts';
 import { ENCOUNT_FILES, ZONE_NAME_TABLE, addEncounterTables, addHashNames, addZone, grassPatchMaker } from './encounters.ts';
 import { addQuads, cellsMesh, gfbcol, wallQuad, type ColMesh } from './collision.ts';
 import { buildTerrain, stairsSize, WALL_NAMES, type Surface, type TerrainShape } from './terrain.ts';
-import { GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, cellRect, defaultGrass, defaultStairs, defaultTerrain, grassRect, type AssetEntry, type AssetSource, type Category, type MapDocument, type MapObject, type WildTable } from './types.ts';
+import { LANGUAGES, MAX_SIGNS, SCRIPT_RECORD, addScriptRecords, labelTable, messageFile, signScript } from './signs.ts';
+import { GRASS_ASSET, SIGN_ASSET, SIGN_MODEL, STAIRS_ASSET, TERRAIN_ASSET, cellRect, defaultGrass, defaultStairs, defaultTerrain, grassRect, type AssetEntry, type AssetSource, type Category, type MapDocument, type MapObject, type WildTable } from './types.ts';
 
 export const MAP_SLOTS = ['test_chr01', 'test_chr02', 'test_chr03', 'test_chr04'];
 
@@ -55,7 +56,6 @@ export interface MapBuildResult {
 
 export const SPAWN_ASSET = 'lg.spawn';
 export const EXIT_ASSET = 'lg.exit';
-export const SIGN_ASSET = 'lg.sign';
 // the editor's own objects: not models
 const EDITOR_ASSETS = [SPAWN_ASSET, EXIT_ASSET, GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET];
 
@@ -358,6 +358,20 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   }
   if (!exit) exit = onGround([spawn[0], spawn[1], spawn[2] + 3 * g.cellSize]);
 
+  // signs: where they are, which way they face, their text (a script event and a message each, signs.ts)
+  const signs: { at: [number, number, number]; rotY: number; text: string; label: string }[] = [];
+  for (const x of o.doc.objects) {
+    if (x.asset !== SIGN_ASSET || !visible(x)) continue;
+    if (signs.length >= MAX_SIGNS) {
+      warnings.push(`${x.name}: como mucho ${MAX_SIGNS} carteles por mapa`);
+      continue;
+    }
+    const m = mul(toSlot, worldMatrix(x, byId));
+    const f = applyDir(m, 0, 0, 1);
+    const text = x.sign?.text?.trim() || '...';
+    signs.push({ at: onGround(apply(m, 0, 0, 0)), rotY: (Math.atan2(f[0], f[2]) * 180) / Math.PI, text, label: `msg_${slot}_sign_${String(signs.length + 1).padStart(2, '0')}` });
+  }
+
   // tall-grass zones: cells of the slot's grid (the map's grid starts at the slot's origin)
   const grass: { name: string; cells: [number, number][]; center: [number, number, number]; wild: WildTable }[] = [];
   const grassCells = new Set<string>();
@@ -493,7 +507,8 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
 
   for (const obj of o.doc.objects) {
     if (!obj.asset || EDITOR_ASSETS.includes(obj.asset) || !visible(obj)) continue;
-    const info = sourceOf(obj.asset);
+    const assetId = obj.asset === SIGN_ASSET ? SIGN_MODEL : obj.asset;
+    const info = sourceOf(assetId);
     if (!info) {
       warnings.push(`${obj.name}: modelo desconocido (${obj.asset})`);
       continue;
@@ -533,7 +548,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     let pivot = [0, 0, 0];
     if (s.kind === 'zonePiece') {
       pivot = s.pivot;
-      const sel = o.selection(obj.asset);
+      const sel = o.selection(assetId);
       if (!sel) {
         warnings.push(`${obj.name}: falta la selección de la pieza (reconstruye el catálogo)`);
         continue;
@@ -550,7 +565,13 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     const world = mul(toSlot, worldMatrix(obj, byId));
     objects++;
     const objBox = addPiece(obj.name, model, pick, world, pivot, s.kind !== 'zonePiece');
-    if (SOLID.includes(info.category) && objBox[4] - objBox[1] > 40 && isFinite(objBox[0]))
+    if (obj.asset === SIGN_ASSET) {
+      // a thinner box than the board's: the player has to get within the inspection box (60 deep) to read it
+      const c = apply(world, 0, 0, 0);
+      const f = applyDir(world, 0, 0, 1);
+      const [hw, hd] = Math.abs(f[0]) > Math.abs(f[2]) ? [20, 70] : [70, 20];
+      walls.push([c[0] - hw, c[2] - hd, c[0] + hw, c[2] + hd, c[1]]);
+    } else if (SOLID.includes(info.category) && objBox[4] - objBox[1] > 40 && isFinite(objBox[0]))
       walls.push([objBox[0], objBox[2], objBox[3], objBox[5], objBox[1]]);
   }
   // a ring of ground around the map (drawn only)
@@ -858,6 +879,11 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       const zoneSchema = learnZoneSchema(ppak.files.map((x) => ppak.read(x)));
       // an outdoor map's settings (the slot's are an indoor test room's): lighting, shadow volume...
       data = rootSettingsFrom(data, area02Data, zoneSchema);
+      // the signs: things to inspect in the map's zone
+      if (signs.length) {
+        const make = signMaker(ppak.files.map((x) => ppak.read(x)), zoneSchema);
+        data = editZoneList(data, 0, LIST_INSPECT, signs.map((sg, i) => make({ id: `lgmap_sign_${i + 1}`, at: sg.at, rotY: sg.rotY, event: fnv1a64(sg.label) })), true, zoneSchema);
+      }
       // a zone per grass zone, with its patch of tall grass
       const area02 = new FBEditor(area02Data);
       // (a Route 1 patch whose position has all three axes: tables leave out fields at 0, and a patch with no Y stays
@@ -891,8 +917,20 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   const sfolder = spak.files[0].folderHash;
   const empty = spak.read(spak.byPath('bin/script/amx/town010.amx')!); // the empty zone script many zones share
   const init = spak.read(spak.byPath('bin/script/amx/init_town010.amx')!); // only a debug print of the zone name differs
-  for (const [file, data] of [[`${slot}.amx`, empty], [`init_${slot}.amx`, init], ...grass.flatMap((gz) => [[`${gz.name}.amx`, empty], [`init_${gz.name}.amx`, init]])] as [string, Uint8Array][])
+  // (with signs: Pallet Town's script, patched to show their messages)
+  const zoneScript = signs.length ? signScript(spak.read(spak.byPath('bin/script/amx/town001.amx')!), signs.map((sg) => fnv1a64(sg.label))) : empty;
+  for (const [file, data] of [[`${slot}.amx`, zoneScript], [`init_${slot}.amx`, init], ...grass.flatMap((gz) => [[`${gz.name}.amx`, empty], [`init_${gz.name}.amx`, init]])] as [string, Uint8Array][])
     if (!spak.byPath(`bin/script/amx/${file}`)) sentries.push({ pathHash: fnv1a64(`bin/script/amx/${file}`), nameHash: fnv1a64(file), folderHash: sfolder, data });
+    else if (file === `${slot}.amx`) sentries.find((e) => e.pathHash === fnv1a64(`bin/script/amx/${file}`))!.data = data;
+  // the signs' messages, in every language (the test slots' message files exist and are registered)
+  const messageFiles = signs.length
+    ? LANGUAGES.flatMap((lang) => [
+        { path: `bin/message/${lang}/script/${slot}.dat`, data: messageFile(signs.map((sg) => sg.text)) },
+        { path: `bin/message/${lang}/script/${slot}.tbl`, data: labelTable([...signs.map((sg) => sg.label), `msg_${slot}_max`]) },
+      ])
+    : [];
+  if (signs.length)
+    messageFiles.push({ path: SCRIPT_RECORD, data: addScriptRecords(o.fs.read(SCRIPT_RECORD), signs.map((sg) => fnv1a64(sg.label)), `bin/script/amx/${slot}.amx`, `script/${slot}.dat`) });
 
   return {
     files: [
@@ -905,6 +943,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       { path: 'bin/archive/field/placement.gfpak', data: writeGfpak(pentries) },
       { path: 'bin/archive/script_amx.gfpak', data: writeGfpak(sentries) },
       ...grassFiles,
+      ...messageFiles,
       ...(grass.length
         ? [
             ...ENCOUNT_FILES.map((path) => ({ path, data: addEncounterTables(o.fs.read(path), 'road001', grass.map((gz) => ({ zone: gz.name, wild: gz.wild }))) })),

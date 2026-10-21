@@ -96,6 +96,7 @@ export interface MapObject {
   grass?: GrassZone;
   terrain?: TerrainBlock; // asset lg.terrain
   stairs?: StairsBlock; // asset lg.stairs
+  sign?: { text: string }; // asset lg.sign: what the player reads with A
 }
 
 export interface WildSlot {
@@ -135,6 +136,8 @@ export function defaultGrass(): GrassZone {
 // ---- terrain: raised ground and stairs (shared/terrain.ts builds their surfaces and collision)
 
 export const TERRAIN_ASSET = 'lg.terrain';
+export const SIGN_ASSET = 'lg.sign';
+export const SIGN_MODEL = 'zp.area02.town001_00.signboard01.0'; // a sign's model: Pallet Town's signboard
 export const STAIRS_ASSET = 'lg.stairs';
 
 export type EdgeKind = 'wall' | 'ledge'; // a cliff that blocks / a ledge the player jumps down from

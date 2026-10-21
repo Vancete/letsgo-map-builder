@@ -240,3 +240,49 @@ export function addTeleporter(file: Uint8Array, zoneIndex: number, tpl: Template
     });
   return f;
 }
+
+// ---- signs: list 17 (what the player inspects with A; signs.ts)
+//   element: 0 {0 transform (9 object id, 11 the script event's hash), 1 kind (2), 2 transform of the box to face
+//   (4 rotation Y: the side it is read from), 4..6 its size (80, 100, 50 in Pallet Town), 8 (1)}
+
+export const LIST_INSPECT = 17;
+
+const f32bits = (v: number) => new Uint32Array(new Float32Array([v]).buffer)[0];
+
+// A maker of list 17 entries, from the game's own: one with an event and a turned box (axes left out of the position
+// are added to the copy)
+export function signMaker(maps: Uint8Array[], zoneSchema: Schema) {
+  const k = zoneSchema.get(LIST_INSPECT);
+  if (k?.kind !== 'vtables') throw new Error('placement: no schema for list 17');
+  let tpl: { ed: FBEditor; pos: number } | null = null;
+  for (const m of maps) {
+    const ed = new FBEditor(m);
+    for (const z of ed.vectorElems(ed.child(ed.u32(0), 0))) {
+      const l = ed.child(z, LIST_INSPECT);
+      if (!l) continue;
+      for (const e of ed.vectorElems(l)) {
+        const o = ed.child(e, 0);
+        const t = o && ed.child(o, 0);
+        const box = o && ed.child(o, 2);
+        if (t && box && ed.fieldPos(t, 11) && ed.fieldPos(box, 4)) tpl = { ed, pos: e };
+        if (tpl) break;
+      }
+      if (tpl) break;
+    }
+    if (tpl) break;
+  }
+  if (!tpl) throw new Error('placement: no sign template');
+  const t0 = tpl;
+  return (s: { id: string; at: [number, number, number]; rotY: number; event: bigint }) => (ed: FBEditor) => {
+    const e = cloneWithSchema(ed, t0.ed, t0.pos, k.schema);
+    const o = ed.child(e, 0);
+    // the position written again with its three axes
+    const t = ed.cloneTable(ed.child(o, 0), {}, ed, { 0: f32bits(s.at[0]), 1: f32bits(s.at[1]), 2: f32bits(s.at[2]) });
+    ed.link(ed.fieldPos(o, 0), t);
+    ed.setFieldU64(t, 9, fnv1a64(s.id));
+    ed.setFieldU64(t, 11, s.event);
+    ed.setFieldF32(ed.child(o, 2), 4, (((s.rotY + 180) % 360) + 360) % 360);
+    [80, 100, 60].forEach((v, i) => ed.setFieldF32(o, 4 + i, v)); // the box to face: width, height, depth
+    return e;
+  };
+}

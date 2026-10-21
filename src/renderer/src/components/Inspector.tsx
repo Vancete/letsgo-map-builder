@@ -2,7 +2,8 @@
 // properties when nothing is selected.
 import { useEffect, useState } from 'react';
 import { useEditor } from '../store';
-import { CATEGORY_LABELS, GRASS_ASSET, STAIRS_ASSET, TERRAIN_ASSET, type MapObject } from '@shared/types';
+import { CATEGORY_LABELS, GRASS_ASSET, SIGN_ASSET, STAIRS_ASSET, TERRAIN_ASSET, type MapObject } from '@shared/types';
+import { SignPanel } from './SignPanel';
 import { GrassPanel } from './GrassPanel';
 import { StairsPanel, TerrainPanel, TexturePicker } from './TerrainPanel';
 import { thumbUrl } from '../three/thumbs';
@@ -232,6 +233,7 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
       {obj.asset === GRASS_ASSET && <GrassPanel obj={obj} />}
       {obj.asset === TERRAIN_ASSET && <TerrainPanel obj={obj} />}
       {obj.asset === STAIRS_ASSET && <StairsPanel obj={obj} />}
+      {obj.asset === SIGN_ASSET && <SignPanel obj={obj} />}
 
       {obj.asset && ![GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET].includes(obj.asset) && (
         <div>
