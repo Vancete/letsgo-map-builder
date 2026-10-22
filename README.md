@@ -8,9 +8,7 @@ Map editor for **Pokémon: Let's Go, Pikachu! / Eevee!**, made to build maps tha
 > [Playing the map in the game](#playing-the-map-in-the-game)), with limitations; the file format and the interface may
 > change without notice.
 
-The editor's interface is in Spanish; menu and button names below are given as they appear in it.
-
-A map made in the editor ([`examples/pueblo-prueba.lgmap`](examples/pueblo-prueba.lgmap)) and the same map in the game:
+A map made in the editor ([`examples/test-town.lgmap`](examples/test-town.lgmap)) and the same map in the game:
 
 ![The example map in the editor](docs/editor-map.png)
 ![The example map in the game](docs/ingame.png)
@@ -27,7 +25,7 @@ npm start          # runs the build
 1. On first start, pick the game folder: your Let's Go Recomp install (it uses `extracted/romfs.bin`), an extracted
    `romfs` folder or the `romfs.bin` itself. The usual install locations are detected on their own.
 2. The catalog is extracted (≈30 s) and thumbnails for its ~3000 objects are made (≈1 min, in the background).
-   **Catálogo › Regenerar miniaturas** makes the thumbnails again; **Catálogo › Reconstruir el catálogo** extracts
+   **Catalog › Make thumbnails again** makes the thumbnails again; **Catalog › Rebuild the catalog** extracts
    everything again (done on its own when the catalog version changes).
 3. Build the map:
    - **Bottom**: the catalog by category (ground, trees, grass, flowers, ledges and slopes, rocks, fences, street
@@ -38,19 +36,19 @@ npm start          # runs the build
    - **Center**: the 3D view with a move / rotate / scale gizmo (W / E / R) and grid snapping.
    - **Right**: the inspector: position, rotation and scale as numbers (arithmetic works: `350+100`), the grid cell the
      object is on, and the map's own properties.
-4. For wild Pokémon, place a **Zona de hierba alta** (tall-grass zone, category _Hierba_, the first one) and set its size
+4. For wild Pokémon, place a **Tall-grass zone** (category _Grass_, the first one) and set its size
    in cells, the levels and which Pokémon appear and how often in the inspector (see
    [Tall-grass zones and wild Pokémon](#tall-grass-zones-and-wild-pokémon)).
-5. For the ground, the **tiles** of the _Suelo_ category are exported to the game; **Editar › Rellenar el suelo** (or
-   _Rellenar_ in the map's inspector) covers the grid with 4 × 4 tiles. For height changes, ledges and stairs use
-   **Elevación** and **Escaleras** (category _Saltos y desniveles_), and for a sign read with A, **Cartel con texto**
-   (category _Mobiliario_). See [Heights, ledges and stairs](#heights-ledges-and-stairs) and [Signs](#signs).
-6. Place the markers of the **Llegada y salida** category: the _Punto de llegada_ (the arrow: where the player arrives)
-   and the _Salida_ (the teleport pad back to Pallet Town). Both are optional; don't put the arrival right next to the
+5. For the ground, the **tiles** of the _Ground_ category are exported to the game; **Edit › Fill the ground** (or
+   _Fill_ in the map's inspector) covers the grid with 4 × 4 tiles. For height changes, ledges and stairs use
+   **Raised ground** and **Stairs** (category _Ledges and heights_), and for a sign read with A, **Sign with text**
+   (category _Street furniture_). See [Heights, ledges and stairs](#heights-ledges-and-stairs) and [Signs](#signs).
+6. Place the markers of the **Arrival and exit** category: the _Arrival point_ (the arrow: where the player arrives)
+   and the _Exit_ (the teleport pad back to Pallet Town). Both are optional; don't put the arrival right next to the
    exit.
-7. **Archivo › Guardar** writes a `.lgmap`; **🎮 Exportar al juego** (or Ctrl+E) makes the mod (see below).
+7. **File › Save** writes a `.lgmap`; **🎮 Export to the game** (or Ctrl+E) makes the mod (see below).
 
-The menu bar (**Archivo, Editar, Ver, Catálogo, Ayuda**) has every command with its shortcut; the toolbar only the
+The menu bar (**File, Edit, View, Catalog, Help**) has every command with its shortcut; the toolbar only the
 everyday ones (undo, move/rotate/scale, grid snapping, the view, logic and export).
 
 ![The editor with its menu bar, a raised block with its cliff, and stairs](docs/editor-terrain.png)
@@ -75,7 +73,7 @@ everyday ones (undo, move/rotate/scale, grid snapping, the view, logic and expor
 ## The grid
 
 As in the game, **a cell is 100 units** (a Strength boulder and a teleport pad are 100 × 100) and the objects the game
-places itself sit on cell centers (multiples of 50). Snapping is half a cell by default; "Centro de casilla" puts every
+places itself sit on cell centers (multiples of 50). Snapping is half a cell by default; "Cell center" puts every
 object on a cell center. The grid's size and origin are set in the map's inspector.
 
 ## Where the objects come from
@@ -128,7 +126,7 @@ trigger zone). Objects with `asset: null` are groups; a child's position is rela
 
 ## Playing the map in the game
 
-1. In the editor, **🎮 Exportar al juego**: pick the `mods/` folder of your Let's Go Recomp install (suggested on its own)
+1. In the editor, **🎮 Export to the game**: pick the `mods/` folder of your Let's Go Recomp install (suggested on its own)
    and one of the four map slots. `mods/<map name>/` is created.
 2. In the Let's Go Recomp launcher, **Mods** tab, enable the mod (and disable other map mods or mods that change
    `placement.gfpak` / `script_amx.gfpak`).
@@ -148,11 +146,11 @@ A map exported now (tiled ground, tall grass, trees with their shadows, a sign):
 
 ![A ledge: the player jumps down from a raised block](docs/ledge.png)
 
-- **Elevación** (raised block): a rectangle of cells raised `Altura` units above the object's height (ledges in the game
+- **Raised ground**: a rectangle of cells raised _Height_ units above the object's height (ledges in the game
   are 50 high), with one texture on top and another on its sides. Each edge (north, east, south, west) is either a
   **cliff**, which can't be crossed, or a **ledge**, which the player jumps down from but can't climb. Blocks may touch;
   in each cell the highest one wins.
-- **Escaleras** (stairs): `Ancho` × `Largo` cells that climb `Altura` towards where the object faces (0°: north; turn it
+- **Stairs**: _Width_ × _Length_ cells that climb _Height_ towards where the object faces (0°: north; turn it
   with Q). Put the high end against the edge of a block of the same height.
 - Whatever is placed on top (the arrival point, the exit, grass zones) sits at the ground's height.
 
@@ -175,7 +173,7 @@ How the game does it and how it is exported (`src/shared/terrain.ts`; the editor
 
 ![A sign of the map read in the game](docs/sign.png)
 
-**Cartel con texto** uses Pallet Town's signboard; its text is written in the inspector. In the game, pressing A in front
+**Sign with text** uses Pallet Town's signboard; its text is written in the inspector. In the game, pressing A in front
 of it (on its front side) opens the message window with the text: two lines per window, the next ones scroll in, and an
 empty line starts a new window. A sign can also have logic (see [Logic with blocks](#logic-with-blocks)).
 
@@ -206,22 +204,21 @@ How it works (`src/shared/signs.ts`, `src/shared/amxgen.ts`):
 
 ![The block editor: a sign whose text changes once a button has been stepped on](docs/logic-editor.png)
 
-**🧩 Lógica** (Ctrl+L, or _Añadir lógica_ in a sign's or a trigger zone's inspector) opens the map's block editor
+**🧩 Logic** (Ctrl+L, or _Add logic_ in a sign's or a trigger zone's inspector) opens the map's block editor
 ([Blockly](https://developers.google.com/blockly)): drag blocks from the left, snap them together or leave them loose;
 the wheel zooms and dragging the background moves around the canvas. Only what hangs from an **event** runs:
 
-- **Al leer el cartel** _X_ (on reading sign X): when the player reads that sign with A (it replaces the inspector's
-  text).
-- **Al pisar la zona** _X_ (on stepping into zone X): when the player walks into that **Zona de activación** (trigger
-  zone, category _Objetos de juego_: a rectangle of cells, invisible in the game; put any object on top to make it look
+- **When reading the sign** _X_: when the player reads that sign with A (it replaces the inspector's text).
+- **When stepping into the zone** _X_: when the player walks into that **Trigger zone** (category _Gimmicks_: a
+  rectangle of cells, invisible in the game; put any object on top to make it look
   like a button). Once per visit to the map; up to 6 zones.
 
-Inside: **mostrar texto** (show a text), **variables** (create, set, change by), **constants** (number, true/false),
+Inside: **show text**, **variables** (create, set, change by), **constants** (number, true/false),
 **conditions** (if / else if / else; =, ≠, <, ≤, >, ≥; and, or, not; + − ×). Variables are numbers (true = 1, false = 0)
 and **are kept in the save**; up to 15 per map. Warnings (a block without a value, an event without an object...) show
 at the bottom right and when exporting.
 
-The example [`examples/cartel-y-boton.lgmap`](examples/cartel-y-boton.lgmap) is the one in the picture; in the game:
+The example [`examples/sign-and-button.lgmap`](examples/sign-and-button.lgmap) is the one in the picture; in the game:
 
 ![The sign before, the button, and the sign after](docs/logic-game.png)
 
@@ -235,7 +232,7 @@ How it gets into the game (`src/shared/logic.ts`, `src/shared/amxgen.ts`):
   in its table (`WorkSet`; the tables after it and the sections have to move, including the `overlays` field of the Pawn
   3.3 header: without it the game crashed). Expressions leave their value in PRI; binary operators get their left side
   in ALT.
-- **Mostrar texto** on a sign calls Pallet Town's sign function (`0x1d80`: turns the player, opens the window, waits and
+- **Show text** on a sign calls Pallet Town's sign function (`0x1d80`: turns the player, opens the window, waits and
   closes it); in a trigger zone, the message function that doesn't turn the player (`0xf40`), then the wait (`0xe80`) and
   close (`0xdb8`) ones. Each text is a line of the zone's message file.
 - **Variables** are the game's _works_ (`WorkGet(hash)`, `WorkSet(hash, value)`), kept in the save: works are named in
@@ -252,8 +249,8 @@ How it gets into the game (`src/shared/logic.ts`, `src/shared/amxgen.ts`):
 
 ![A grass zone in the editor: size, levels and Pokémon table in the inspector](docs/editor-grass.png)
 
-Each **Zona de hierba alta** of the map is a rectangle of cells with its own table: up to 10 Pokémon (Kanto's 151,
-Meltan and Melmetal), the chance of each one (they must add up to 100 %; **Repartir 100 %** evens them out) and the
+Each **Tall-grass zone** of the map is a rectangle of cells with its own table: up to 10 Pokémon (Kanto's 151,
+Meltan and Melmetal), the chance of each one (they must add up to 100 %; **Share 100 %** evens them out) and the
 level range. The same table applies to Pikachu and Eevee.
 
 In the game the zone fills with animated tall grass and the Pokémon appear and wander in it, as on the routes; touching
@@ -303,10 +300,10 @@ model, collision, terrain and placement), but no path leads to them.
 **The ground.** The editor's tiles are exported drawn with a game ground material (`FieldObjectShader`, Route 1's paving
 stones, `roadstone01_com` in `area02/road001_00`) with its texture replaced by the tile's. The slot comes with its own
 ground, a 40 × 40-cell test meadow whose UVs are in islands (stripes show): by default it only goes under maps without
-tiles (_Pradera del hueco_ in the map's inspector). Beyond the map's edge the game draws nothing but its background:
+tiles (_Slot meadow_ in the map's inspector). Beyond the map's edge the game draws nothing but its background:
 **it is not a test-room floor** (the only model the map loads is ours, checked with the log of opened files, and raising
 the whole map by 300 units doesn't change that background), so lowering or raising the map doesn't hide it; that is
-what the **Borde exterior** is for (a ring of ground around the map, only drawn).
+what the **Outer border** is for (a ring of ground around the map, only drawn).
 
 Without the interface: `node scripts/build-map-mod.ts <map.lgmap> <catalog cache> <game folder> <mods folder> [name]`.
 
@@ -362,7 +359,7 @@ Notes on how this was reached, for whoever carries on:
 - The logic is simple for now: read and step events, texts, variables and conditions (no loops, no yes/no questions, no
   giving items or moving characters).
 - Whole zones and animated objects (doors) are exported as static geometry. So are the catalog's loose tall-grass tufts:
-  encounters need a _Zona de hierba alta_.
+  encounters need a _Tall-grass zone_.
 - Grass zones are grid-aligned rectangles (they don't rotate) and their table is the same for Pikachu and Eevee; there
   are no water or flying Pokémon.
 - Building doors lead nowhere.

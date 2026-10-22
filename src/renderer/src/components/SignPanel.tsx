@@ -18,29 +18,29 @@ export function SignPanel({ obj }: { obj: MapObject }) {
   const long = text.split('\n').filter((l) => l.length > 44).length;
   return (
     <div>
-      <h3>Cartel</h3>
+      <h3>Sign</h3>
       <textarea
         key={obj.id}
         rows={6}
         defaultValue={text}
         disabled={scripted}
-        placeholder="Texto del cartel"
+        placeholder="The sign's text"
         style={{ width: '100%', resize: 'vertical', opacity: scripted ? 0.5 : 1 }}
         onBlur={(e) => e.target.value !== text && useEditor.getState().updateObject(obj.id, { sign: { text: e.target.value } })}
       />
       <div className="btn-row" style={{ marginTop: 6 }}>
-        <button onClick={() => openLogic(obj.id)}>🧩 {scripted ? 'Editar su lógica' : 'Añadir lógica'}</button>
+        <button onClick={() => openLogic(obj.id)}>🧩 {scripted ? 'Edit its logic' : 'Add logic'}</button>
       </div>
       <p className="kv">
         {scripted ? (
-          <>Este cartel tiene lógica (bloque «Al leer el cartel»): lo que muestra se decide allí y este texto no se usa.</>
+          <>This sign has logic (a "When reading the sign" block): what it shows is decided there and this text is not used.</>
         ) : (
           <>
-            En el juego, al pulsar A delante del cartel (por su cara delantera) aparece este texto. La ventana muestra dos líneas;
-            las siguientes van apareciendo al pulsar A, y una <b>línea en blanco</b> empieza una ventana nueva.
-            {long > 0 && <span style={{ color: 'var(--danger)' }}> Hay líneas de más de 44 letras: puede que no quepan.</span>}
+            In the game, pressing A in front of the sign (on its front side) shows this text. The window shows two lines; the next
+            ones scroll in with A, and an <b>empty line</b> starts a new window.
+            {long > 0 && <span style={{ color: 'var(--danger)' }}> Some lines are longer than 44 letters: they may not fit.</span>}
             <br />
-            {messageChars(text || '...').length - 1} caracteres.
+            {messageChars(text || '...').length - 1} characters.
           </>
         )}
       </p>
@@ -60,22 +60,22 @@ export function TriggerPanel({ obj }: { obj: MapObject }) {
   const errors = readProgram(logic as WorkspaceJson).errors;
   return (
     <div>
-      <h3>Zona de activación</h3>
+      <h3>Trigger zone</h3>
       <div className="field">
-        <span>Casillas</span>
+        <span>Cells</span>
         <div className="vec3" style={{ gridTemplateColumns: '1fr 1fr' }}>
           <IntInput value={t.w} onChange={(w) => set({ w })} />
           <IntInput value={t.d} onChange={(d) => set({ d })} />
         </div>
       </div>
       <div className="btn-row" style={{ marginTop: 6 }}>
-        <button onClick={() => openLogic(obj.id)}>🧩 {scripted ? 'Editar su lógica' : 'Añadir lógica'}</button>
+        <button onClick={() => openLogic(obj.id)}>🧩 {scripted ? 'Edit its logic' : 'Add logic'}</button>
       </div>
       <p className="kv">
-        Cuando el jugador entra en estas casillas se ejecuta su bloque «Al pisar la zona» (una vez por visita al mapa). En el juego
-        no se ve: pon encima un objeto si quieres que parezca un botón. Hasta 6 zonas por mapa.
-        {!scripted && <span style={{ color: 'var(--danger)' }}> Aún no tiene lógica: no hará nada.</span>}
-        {errors.length > 0 && <span style={{ color: 'var(--danger)' }}> La lógica del mapa tiene avisos: ábrela para verlos.</span>}
+        When the player walks into these cells, its "When stepping into the zone" block runs (once per visit to the map). It
+        can't be seen in the game: put an object on top to make it look like a button. Up to 6 zones per map.
+        {!scripted && <span style={{ color: 'var(--danger)' }}> It has no logic yet: it will do nothing.</span>}
+        {errors.length > 0 && <span style={{ color: 'var(--danger)' }}> The map's logic has warnings: open it to see them.</span>}
       </p>
     </div>
   );

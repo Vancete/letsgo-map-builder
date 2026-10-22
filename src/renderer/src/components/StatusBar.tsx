@@ -9,14 +9,14 @@ export function StatusBar() {
   const grid = useEditor((s) => s.doc.grid);
   return (
     <div className="status">
-      <span>{cell ? `Casilla ${cell[0]}, ${cell[1]}` : 'Fuera de la rejilla'}</span>
+      <span>{cell ? `Cell ${cell[0]}, ${cell[1]}` : 'Outside the grid'}</span>
       <span>
-        Rejilla {grid.width}×{grid.depth} · {grid.cellSize} u
+        Grid {grid.width}×{grid.depth} · {grid.cellSize} u
       </span>
-      <span>{count} objetos</span>
-      <span>{sel ? `${sel} seleccionados` : ''}</span>
+      <span>{count} objects</span>
+      <span>{sel ? `${sel} selected` : ''}</span>
       <span className="grow" />
-      <span>{dirty ? '● Cambios sin guardar' : filePath ? 'Guardado' : ''}</span>
+      <span>{dirty ? '● Unsaved changes' : filePath ? 'Saved' : ''}</span>
       <span>{filePath ?? ''}</span>
     </div>
   );

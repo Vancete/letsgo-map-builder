@@ -11,10 +11,10 @@ const ui = () => useUi.getState();
 // before throwing away unsaved changes: true when it's fine to go on
 export async function confirmDiscard(): Promise<boolean> {
   if (!ed().dirty) return true;
-  const r = await ui().ask('Cambios sin guardar', `"${ed().doc.name}" tiene cambios sin guardar.`, [
-    { label: 'Cancelar', value: 'cancel' },
-    { label: 'Descartar', value: 'discard' },
-    { label: 'Guardar', value: 'save', primary: true },
+  const r = await ui().ask('Unsaved changes', `"${ed().doc.name}" has unsaved changes.`, [
+    { label: 'Cancel', value: 'cancel' },
+    { label: 'Discard', value: 'discard' },
+    { label: 'Save', value: 'save', primary: true },
   ]);
   if (r === 'save') return saveMap(false);
   return r === 'discard';
@@ -31,9 +31,9 @@ export async function openMap(path?: string) {
     if (!r) return;
     const missing = r.doc.objects.filter((o) => o.asset && !ed().assets.has(o.asset)).length;
     ed().loadMap(r.doc, r.path);
-    ui().notify(missing ? `Mapa abierto: ${missing} objetos no están en el catálogo (se ven como cajas)` : 'Mapa abierto', missing > 0);
+    ui().notify(missing ? `Map opened: ${missing} objects are not in the catalog (they show as boxes)` : 'Map opened', missing > 0);
   } catch (e) {
-    ui().notify(`No se pudo abrir: ${(e as Error).message}`, true);
+    ui().notify(`Could not open it: ${(e as Error).message}`, true);
   }
 }
 
@@ -56,10 +56,10 @@ export async function saveMap(as: boolean): Promise<boolean> {
     const path = await window.api.saveMap(as ? null : ed().filePath, doc);
     if (!path) return false;
     ed().markSaved(path);
-    ui().notify('Mapa guardado');
+    ui().notify('Map saved');
     return true;
   } catch (e) {
-    ui().notify(`No se pudo guardar: ${(e as Error).message}`, true);
+    ui().notify(`Could not save it: ${(e as Error).message}`, true);
     return false;
   }
 }
@@ -125,11 +125,11 @@ export async function generateThumbs(force: boolean) {
 
 export async function rebuildCatalog() {
   const r = await ui().ask(
-    'Reconstruir catálogo',
-    'Se volverán a extraer todos los modelos y texturas de los archivos del juego y se regenerarán las miniaturas. Tarda alrededor de un minuto.',
+    'Rebuild the catalog',
+    'Every model and texture will be extracted again from the game\'s files and the thumbnails made again. It takes about a minute.',
     [
-      { label: 'Cancelar', value: 'cancel' },
-      { label: 'Reconstruir', value: 'ok', primary: true },
+      { label: 'Cancel', value: 'cancel' },
+      { label: 'Rebuild', value: 'ok', primary: true },
     ],
   );
   if (r !== 'ok') return;

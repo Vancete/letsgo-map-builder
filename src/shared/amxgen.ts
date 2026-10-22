@@ -104,9 +104,9 @@ export function buildZoneScript(town001: Uint8Array, handlers: ScriptHandler[], 
   // the functions we call are where we expect them
   const at = (a: number) => cells[a / 8];
   if (at(FN_SIGN_MESSAGE) !== OP.PROC || at(FN_MESSAGE) !== OP.PROC || at(FN_WAIT) !== OP.PROC || at(FN_CLOSE) !== OP.PROC)
-    throw new Error('el script de Pueblo Paleta no es el esperado (otra versión del juego)');
+    throw new Error('Pallet Town\'s script is not the expected one (another version of the game)');
   const natives = (hv.getUint32(40, true) - hv.getUint32(36, true)) / 12;
-  if (natives !== 38) throw new Error('el script de Pueblo Paleta no es el esperado (nativas)');
+  if (natives !== 38) throw new Error('Pallet Town\'s script is not the expected one (natives)');
   const NATIVE_WORKSET = natives; // added below
 
   const a = new Asm(codeCells);

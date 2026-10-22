@@ -62,7 +62,7 @@ export function Hierarchy() {
         <div
           className={`tree-row ${sel.has(o.id) ? 'selected' : ''} ${dt === 'into' ? 'drop-into' : ''} ${dt === 'before' ? 'drop-before' : ''}`}
           style={{ paddingLeft: 4 + depth * 14 }}
-          title={asset ? `${asset.name} · ${CATEGORY_LABELS[asset.category]}${asset.zone ? ` · ${asset.zone}` : ''}` : o.asset ? 'Objeto fuera del catálogo' : 'Grupo'}
+          title={asset ? `${asset.name} · ${CATEGORY_LABELS[asset.category]}${asset.zone ? ` · ${asset.zone}` : ''}` : o.asset ? 'Object not in the catalog' : 'Group'}
           draggable={renaming !== o.id}
           onDragStart={(e) => {
             e.dataTransfer.setData('application/x-lgobject', o.id);
@@ -110,7 +110,7 @@ export function Hierarchy() {
           )}
           <button
             className={`mini ${o.locked ? 'on' : ''}`}
-            title={o.locked ? 'Desbloquear' : 'Bloquear (no se selecciona en la vista)'}
+            title={o.locked ? 'Unlock' : 'Lock (not selectable in the view)'}
             onClick={(e) => {
               e.stopPropagation();
               ed().updateObject(o.id, { locked: !o.locked });
@@ -120,7 +120,7 @@ export function Hierarchy() {
           </button>
           <button
             className={`mini ${!o.visible ? 'on' : ''}`}
-            title={o.visible ? 'Ocultar' : 'Mostrar'}
+            title={o.visible ? 'Hide' : 'Show'}
             onClick={(e) => {
               e.stopPropagation();
               ed().updateObject(o.id, { visible: !o.visible });
@@ -137,14 +137,14 @@ export function Hierarchy() {
   return (
     <>
       <div className="panel-head">
-        <span>Escena</span>
+        <span>Scene</span>
         <span className="grow" />
-        <button className="icon" title="Nuevo grupo con la selección (Ctrl+G)" onClick={() => ed().groupSelected()}>
+        <button className="icon" title="New group with the selection (Ctrl+G)" onClick={() => ed().groupSelected()}>
           📁+
         </button>
       </div>
       <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--line)' }}>
-        <input type="search" placeholder="Buscar en la escena..." value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: '100%' }} />
+        <input type="search" placeholder="Search the scene..." value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: '100%' }} />
       </div>
       <div
         className="panel-body"
@@ -158,9 +158,9 @@ export function Hierarchy() {
           {roots.map((n) => row(n, 0))}
           {!objects.length && (
             <div className="empty">
-              La escena está vacía.
+              The scene is empty.
               <br />
-              Arrastra objetos desde el catálogo de abajo a la vista, o selecciona uno y haz clic en la vista para colocarlo.
+              Drag objects from the catalog below into the view, or select one and click in the view to place it.
             </div>
           )}
         </div>

@@ -434,7 +434,7 @@ class TextureLookup {
   constructor(fs: GameFS, paks: string[], progress: (p: ExtractProgress) => void) {
     this.fs = fs;
     paks.forEach((p, i) => {
-      progress({ phase: 'Indexando texturas', done: i, total: paks.length, message: p.slice(FIELD.length + 1) });
+      progress({ phase: 'Indexing textures', done: i, total: paks.length, message: p.slice(FIELD.length + 1) });
       for (const name of this.load(p, false).keys()) if (!this.index.has(name)) this.index.set(name, p);
     });
   }
@@ -494,7 +494,7 @@ function round(b: Box): Box {
 export function extractCatalog(opts: ExtractOptions): Catalog {
   const progress = opts.onProgress ?? (() => {});
   const fs = openGameFS(opts.gamePath);
-  if (!fs) throw new Error('No se encuentran los archivos del juego (bin/archive/field) en esa carpeta');
+  if (!fs) throw new Error('The game\'s files (bin/archive/field) are not in that folder');
   const maxPer = opts.maxInstancesPerFamily ?? 6;
   const modelsDir = join(opts.cacheDir, 'models');
   if (existsSync(modelsDir)) rmSync(modelsDir, { recursive: true, force: true });
@@ -504,7 +504,7 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
   const seen = new Set<string>();
   const groundTextures = new Set<string>();
 
-  progress({ phase: 'Leyendo índice del juego', done: 0, total: 1 });
+  progress({ phase: 'Reading the game\'s index', done: 0, total: 1 });
   const known = knownPaths(fs);
   const paks = listPaks(fs, FIELD).filter((p) => !/placement\.gfpak$|test_chr/.test(p));
   const texLookup = new TextureLookup(fs, paks, progress);
@@ -533,7 +533,7 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
 
   paks.forEach((pakPath, pi) => {
     const rel = pakPath.slice(FIELD.length + 1).replace(/\.gfpak$/, '');
-    progress({ phase: 'Extrayendo modelos', done: pi, total: paks.length, message: rel });
+    progress({ phase: 'Extracting models', done: pi, total: paks.length, message: rel });
     let contents: PakContents;
     try {
       contents = readPak(fs, pakPath, known);
@@ -665,7 +665,7 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
   });
 
   // ground tiles
-  progress({ phase: 'Generando baldosas de suelo', done: 0, total: groundTextures.size });
+  progress({ phase: 'Making ground tiles', done: 0, total: groundTextures.size });
   for (const tex of groundTextures) {
     for (const cells of [1, 4]) {
       const s = 100 * cells;
@@ -716,12 +716,12 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
       ],
     };
     writeFileSync(join(modelsDir, 'lg.spawn.lgm'), deflateSync(encodeLgm(arrow)));
-    assets.unshift({ id: 'lg.spawn', name: 'Punto de llegada', category: 'marker', zone: null, source: { kind: 'marker', marker: 'spawn' }, bounds: arrow.bounds, triangles: 1 });
+    assets.unshift({ id: 'lg.spawn', name: 'Arrival point', category: 'marker', zone: null, source: { kind: 'marker', marker: 'spawn' }, bounds: arrow.bounds, triangles: 1 });
     // a tall-grass zone (drawn by the editor as tufts over its cells; its thumbnail is the game's tuft)
     const tuft = assets.find((a) => a.id === 'bm.enc_grass01');
     if (tuft && existsSync(join(modelsDir, 'bm.enc_grass01.lgm'))) {
       writeFileSync(join(modelsDir, 'lg.grass.lgm'), readFileSync(join(modelsDir, 'bm.enc_grass01.lgm')));
-      assets.unshift({ id: 'lg.grass', name: 'Zona de hierba alta (Pokémon salvajes)', category: 'grass', zone: null, source: { kind: 'marker', marker: 'grass' }, bounds: tuft.bounds, triangles: tuft.triangles });
+      assets.unshift({ id: 'lg.grass', name: 'Tall-grass zone (wild Pokémon)', category: 'grass', zone: null, source: { kind: 'marker', marker: 'grass' }, bounds: tuft.bounds, triangles: tuft.triangles });
     }
     // raised ground and stairs (drawn by the editor from their settings; these models are their thumbnails)
     const flat = (name: string, map: string | null, color: [number, number, number]): LgmMaterial => ({ name, map, map2: null, uvSet: 0, uvScale: [1, 1], alphaTest: 0, blend: false, doubleSided: true, color, vertexColor: false });
@@ -759,8 +759,8 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
     };
     writeFileSync(join(modelsDir, 'lg.stairs.lgm'), deflateSync(encodeLgm(steps)));
     assets.unshift(
-      { id: 'lg.stairs', name: 'Escaleras', category: 'ledge', zone: null, source: { kind: 'marker', marker: 'stairs' }, bounds: steps.bounds as Box, triangles: 40 },
-      { id: 'lg.terrain', name: 'Elevación (desnivel, saltos)', category: 'ledge', zone: null, source: { kind: 'marker', marker: 'terrain' }, bounds: block.bounds as Box, triangles: 10 },
+      { id: 'lg.stairs', name: 'Stairs', category: 'ledge', zone: null, source: { kind: 'marker', marker: 'stairs' }, bounds: steps.bounds as Box, triangles: 40 },
+      { id: 'lg.terrain', name: 'Raised ground (cliffs, ledges)', category: 'ledge', zone: null, source: { kind: 'marker', marker: 'terrain' }, bounds: block.bounds as Box, triangles: 10 },
     );
     // a trigger zone: an area that runs its "Al pisar" logic (drawn by the editor over its cells)
     const pad: LgmModel = {
@@ -769,23 +769,23 @@ export function extractCatalog(opts: ExtractOptions): Catalog {
       meshes: [boxMesh(0, -50, 0, -50, 50, 2, 50, 'top')],
     };
     writeFileSync(join(modelsDir, 'lg.trigger.lgm'), deflateSync(encodeLgm(pad)));
-    assets.unshift({ id: 'lg.trigger', name: 'Zona de activación (al pisarla)', category: 'gimmick', zone: null, source: { kind: 'marker', marker: 'trigger' }, bounds: pad.bounds as Box, triangles: 2 });
+    assets.unshift({ id: 'lg.trigger', name: 'Trigger zone (walk into it)', category: 'gimmick', zone: null, source: { kind: 'marker', marker: 'trigger' }, bounds: pad.bounds as Box, triangles: 2 });
     // a sign the player reads (its model: Pallet Town's signboard)
     const board = assets.find((a) => a.id === 'zp.area02.town001_00.signboard01.0');
     if (board && existsSync(join(modelsDir, `${board.id}.lgm`))) {
       writeFileSync(join(modelsDir, 'lg.sign.lgm'), readFileSync(join(modelsDir, `${board.id}.lgm`)));
-      assets.unshift({ id: 'lg.sign', name: 'Cartel con texto', category: 'street', zone: null, source: { kind: 'marker', marker: 'sign' }, bounds: board.bounds, triangles: board.triangles });
+      assets.unshift({ id: 'lg.sign', name: 'Sign with text', category: 'street', zone: null, source: { kind: 'marker', marker: 'sign' }, bounds: board.bounds, triangles: board.triangles });
     }
     const warp = assets.find((a) => a.id === 'bm.warp01');
     if (warp && existsSync(join(modelsDir, 'bm.warp01.lgm'))) {
       writeFileSync(join(modelsDir, 'lg.exit.lgm'), readFileSync(join(modelsDir, 'bm.warp01.lgm')));
-      assets.unshift({ id: 'lg.exit', name: 'Salida (teletransportador)', category: 'marker', zone: null, source: { kind: 'marker', marker: 'exit' }, bounds: warp.bounds, triangles: warp.triangles });
+      assets.unshift({ id: 'lg.exit', name: 'Exit (teleport pad)', category: 'marker', zone: null, source: { kind: 'marker', marker: 'exit' }, bounds: warp.bounds, triangles: warp.triangles });
     }
   }
 
   const catalog: Catalog = { version: CATALOG_VERSION, gamePath: opts.gamePath, createdAt: new Date().toISOString(), assets };
   writeFileSync(join(opts.cacheDir, 'catalog.json'), JSON.stringify(catalog));
-  progress({ phase: 'Catálogo listo', done: 1, total: 1, message: `${assets.length} objetos` });
+  progress({ phase: 'Catalog ready', done: 1, total: 1, message: `${assets.length} objects` });
   return catalog;
 }
 

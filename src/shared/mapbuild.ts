@@ -363,7 +363,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   // the map's logic (blocks: logic.ts) and what runs it: signs (read with A) and trigger zones (walked into), each a
   // script event (signs.ts, amxgen.ts)
   const program = readProgram(o.doc.logic as WorkspaceJson | undefined);
-  warnings.push(...program.errors.map((e) => `lógica: ${e}`));
+  warnings.push(...program.errors.map((e) => `logic: ${e}`));
   const handlerOf = (event: 'read' | 'step', id: string) => program.handlers.find((h) => h.event === event && h.object === id);
   const signs: { id: string; at: [number, number, number]; rotY: number; event: bigint; body: ScriptHandler['body'] }[] = [];
   for (const x of o.doc.objects) {
@@ -379,7 +379,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     if (x.asset !== TRIGGER_ASSET || !visible(x)) continue;
     const h = handlerOf('step', x.id);
     if (!h) {
-      warnings.push(`${x.name}: zona de activación sin lógica (bloque "Al pisar")`);
+      warnings.push(`${x.name}: trigger zone with no logic (a "When stepping" block)`);
       continue;
     }
     const c = apply(mul(toSlot, worldMatrix(x, byId)), 0, 0, 0);
@@ -395,7 +395,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   const varIds = usedVariables(program);
   const varWork = new Map(varIds.map((id, i) => [id, `LGMAP_WORK_${String(i + 1).padStart(2, '0')}`]));
   const armWork = (i: number) => `LGMAP_ZONE_${String(i + 1).padStart(2, '0')}`;
-  if (triggers.length > 6) warnings.push('como mucho 6 zonas de activación por mapa: el resto no se exporta');
+  if (triggers.length > 6) warnings.push('at most 6 trigger zones per map: the rest are not exported');
   triggers.splice(6);
   const scripted = signs.length > 0 || triggers.length > 0;
 
@@ -417,7 +417,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
         cells.push([cx0 + i, cz0 + k]);
       }
     if (!cells.length) continue;
-    if (!z.wild.slots.some((sl) => sl.species && sl.rate)) warnings.push(`${x.name}: zona de hierba sin Pokémon`);
+    if (!z.wild.slots.some((sl) => sl.species && sl.rate)) warnings.push(`${x.name}: grass zone with no Pokémon`);
     grass.push({ name: `${slot}_g${grass.length + 1}`, cells, center: onGround([(cx0 + w / 2) * cell, c[1], (cz0 + d / 2) * cell]), wild: z.wild });
   }
 
@@ -537,7 +537,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     const assetId = obj.asset === SIGN_ASSET ? SIGN_MODEL : obj.asset;
     const info = sourceOf(assetId);
     if (!info) {
-      warnings.push(`${obj.name}: modelo desconocido (${obj.asset})`);
+      warnings.push(`${obj.name}: unknown model (${obj.asset})`);
       continue;
     }
     const s = info.source;
@@ -560,7 +560,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
     try {
       model = src.model(s.pak, s.fileIndex);
     } catch (e) {
-      warnings.push(`${obj.name}: no se pudo leer ${s.pak} (${(e as Error).message})`);
+      warnings.push(`${obj.name}: could not read ${s.pak} (${(e as Error).message})`);
       continue;
     }
     // which triangles
@@ -577,7 +577,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       pivot = s.pivot;
       const sel = o.selection(assetId);
       if (!sel) {
-        warnings.push(`${obj.name}: falta la selección de la pieza (reconstruye el catálogo)`);
+        warnings.push(`${obj.name}: the piece's selection is missing (rebuild the catalog)`);
         continue;
       }
       const dv = new DataView(sel.buffer, sel.byteOffset, sel.byteLength);
@@ -626,7 +626,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
   if (surfaces.size) {
     const tm = src.model(SURFACE_TEMPLATE.pak, SURFACE_TEMPLATE.fileIndex);
     const mi = tm.gf.meshes.findIndex((m) => m.polygons.some((p) => tm.gf.materials[p.material]?.name === SURFACE_TEMPLATE.material));
-    if (mi < 0) throw new Error(`no se encuentra el material ${SURFACE_TEMPLATE.material}`);
+    if (mi < 0) throw new Error(`material ${SURFACE_TEMPLATE.material} not found`);
     const matIdx = tm.gf.meshes[mi].polygons.find((p) => tm.gf.materials[p.material]?.name === SURFACE_TEMPLATE.material)!.material;
     const mt = tm.root.tables(8)[mi];
     const attrs = mt.tables(1);
@@ -684,11 +684,11 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       mesh.polygons.forEach((p, pi) => mp.set(pi, Array.from({ length: Math.floor(p.indices.length / 3) }, (_, k) => k)));
       pick.set(mi, mp);
     });
-    addPiece('suelo base', base, pick, compose([0, Y0, 0], [0, 0, 0], [1, 1, 1]), [0, 0, 0], false);
+    addPiece('slot ground', base, pick, compose([0, Y0, 0], [0, 0, 0], [1, 1, 1]), [0, 0, 0], false);
   }
-  if (!meshes.length) throw new Error('El mapa no tiene objetos que se puedan exportar al juego');
-  if (W > 4000 || D > 4000) warnings.push('El mapa mide más de 40 casillas: el suelo base del hueco solo cubre 40 x 40');
-  log(`${objects} objetos, ${meshes.length} mallas, ${materials.length} materiales, ${triangles} triángulos`);
+  if (!meshes.length) throw new Error('The map has no objects that can be exported to the game');
+  if (W > 4000 || D > 4000) warnings.push('The map is larger than 40 cells: the slot\'s own ground only covers 40 x 40');
+  log(`${objects} objects, ${meshes.length} meshes, ${materials.length} materials, ${triangles} triangles`);
 
   // ---- the merged model
   const slotModelPath = `bin/field/model/${slot}/${slot}.gfbmdl`;
@@ -849,13 +849,13 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
         found++;
       }
     }
-    if (found < 2) warnings.push(`material ${orig}: shaders no encontrados`);
+    if (found < 2) warnings.push(`material ${orig}: shaders not found`);
   }
   for (const t of textures) {
     if (!t) continue;
     const d = src.file(`${t}.bntx`, texNear.get(t)!);
     if (d) put(`${t}.bntx`, d);
-    else warnings.push(`textura ${t} no encontrada`);
+    else warnings.push(`texture ${t} not found`);
   }
 
   // ---- collision (see collision.ts)
@@ -936,7 +936,7 @@ export function buildMapMod(o: MapBuildOptions): MapBuildResult {
       }
     } else if (f.pathHash === fnv1a64(placementPath(entrance.map))) {
       const z = zoneIndexOf(data, entrance.zone);
-      if (z < 0) throw new Error(`La zona ${entrance.zone} no está en ${entrance.map}`);
+      if (z < 0) throw new Error(`Zone ${entrance.zone} is not in ${entrance.map}`);
       data = addTeleporter(data, z, tpl, { id: `lgmap_${slot}_entrance`, at: entrance.at, destMap: slot, destZone: slot, arrive: spawn });
     }
     return { pathHash: f.pathHash, nameHash: f.nameHash, folderHash: f.folderHash, data };

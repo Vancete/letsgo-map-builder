@@ -21,24 +21,24 @@ export type Category =
   | 'other';
 
 export const CATEGORY_LABELS: Record<Category, string> = {
-  marker: 'Llegada y salida',
-  pc: 'Centros Pokémon',
-  shop: 'Tiendas',
-  gym: 'Gimnasios',
-  building: 'Edificios',
-  tree: 'Árboles',
-  grass: 'Hierba',
-  flower: 'Flores y plantas',
-  ledge: 'Saltos y desniveles',
-  ground: 'Suelo',
-  rock: 'Rocas',
-  street: 'Mobiliario (bancos, farolas, carteles)',
-  fence: 'Vallas',
-  door: 'Puertas',
-  water: 'Agua',
-  gimmick: 'Objetos de juego',
-  zone: 'Zonas completas',
-  other: 'Otros',
+  marker: 'Arrival and exit',
+  pc: 'Pokémon Centers',
+  shop: 'Shops',
+  gym: 'Gyms',
+  building: 'Buildings',
+  tree: 'Trees',
+  grass: 'Grass',
+  flower: 'Flowers and plants',
+  ledge: 'Ledges and heights',
+  ground: 'Ground',
+  rock: 'Rocks',
+  street: 'Street furniture (benches, lamps, signs)',
+  fence: 'Fences',
+  door: 'Doors',
+  water: 'Water',
+  gimmick: 'Gimmicks',
+  zone: 'Whole zones',
+  other: 'Other',
 };
 
 export const CATEGORY_ORDER: Category[] = [
@@ -77,7 +77,7 @@ export interface Catalog {
   assets: AssetEntry[];
 }
 
-export const CATALOG_VERSION = 7;
+export const CATALOG_VERSION = 8;
 
 // ---- map file (.lgmap, JSON)
 
@@ -208,7 +208,7 @@ export function emptyMap(): MapDocument {
   return {
     format: 'letsgo-map',
     version: 1,
-    name: 'Nuevo mapa',
+    name: 'New map',
     author: '',
     description: '',
     grid: { cellSize: 100, width: 32, depth: 32, originX: -1600, originZ: -1600 },

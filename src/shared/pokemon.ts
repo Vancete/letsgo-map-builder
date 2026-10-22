@@ -1,5 +1,4 @@
-// The Pokémon of Let's Go (national Pokédex numbers: the 151 of Kanto, Meltan and Melmetal). Names as in the Spanish
-// games (the same as the English ones for these).
+// The Pokémon of Let's Go (national Pokédex numbers: the 151 of Kanto, Meltan and Melmetal). Their English names.
 const KANTO = `Bulbasaur Ivysaur Venusaur Charmander Charmeleon Charizard Squirtle Wartortle Blastoise Caterpie Metapod
 Butterfree Weedle Kakuna Beedrill Pidgey Pidgeotto Pidgeot Rattata Raticate Spearow Fearow Ekans Arbok Pikachu Raichu
 Sandshrew Sandslash Nidoran♀ Nidorina Nidoqueen Nidoran♂ Nidorino Nidoking Clefairy Clefable Vulpix Ninetales

@@ -142,7 +142,7 @@ export function Inspector() {
   const sel = selection.map((id) => objects.find((o) => o.id === id)).filter((o): o is MapObject => !!o);
   return (
     <>
-      <div className="panel-head">{sel.length === 1 ? 'Objeto' : sel.length > 1 ? `${sel.length} objetos` : 'Mapa'}</div>
+      <div className="panel-head">{sel.length === 1 ? 'Object' : sel.length > 1 ? `${sel.length} objects` : 'Map'}</div>
       <div className="panel-body">
         {sel.length === 1 ? <ObjectInspector obj={sel[0]} /> : sel.length > 1 ? <MultiInspector objs={sel} /> : <MapInspector />}
       </div>
@@ -186,7 +186,7 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
     <div className="insp">
       <div>
         <div className="field">
-          <span>Nombre</span>
+          <span>Name</span>
           <input key={obj.id + obj.name} defaultValue={obj.name} onBlur={(e) => e.target.value.trim() && e.target.value !== obj.name && update({ name: e.target.value.trim() })} onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />
         </div>
         <div className="field">
@@ -196,38 +196,38 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
               <input type="checkbox" checked={obj.visible} onChange={(e) => update({ visible: e.target.checked })} /> visible
             </label>
             <label style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-              <input type="checkbox" checked={obj.locked} onChange={(e) => update({ locked: e.target.checked })} /> bloqueado
+              <input type="checkbox" checked={obj.locked} onChange={(e) => update({ locked: e.target.checked })} /> locked
             </label>
           </div>
         </div>
       </div>
 
       <div>
-        <h3>Transformación</h3>
-        <Vec3 label="Posición" value={obj.position} step={grid.cellSize / 2} onChange={(v, h) => update({ position: v }, h)} />
-        <Vec3 label="Rotación °" value={obj.rotation} step={15} onChange={(v, h) => update({ rotation: v }, h)} />
-        <Vec3 label="Escala" value={obj.scale} step={0.25} onChange={(v, h) => update({ scale: v }, h)} />
+        <h3>Transform</h3>
+        <Vec3 label="Position" value={obj.position} step={grid.cellSize / 2} onChange={(v, h) => update({ position: v }, h)} />
+        <Vec3 label="Rotation °" value={obj.rotation} step={15} onChange={(v, h) => update({ rotation: v }, h)} />
+        <Vec3 label="Scale" value={obj.scale} step={0.25} onChange={(v, h) => update({ scale: v }, h)} />
         <div className="btn-row" style={{ marginTop: 6 }}>
-          <button onClick={() => update({ rotation: [obj.rotation[0], (obj.rotation[1] + 90) % 360, obj.rotation[2]] })}>Girar 90°</button>
-          <button onClick={() => update({ position: [obj.position[0], 0, obj.position[2]] })}>Al suelo</button>
-          <button onClick={() => update({ rotation: [0, 0, 0], scale: [1, 1, 1] })}>Reiniciar</button>
+          <button onClick={() => update({ rotation: [obj.rotation[0], (obj.rotation[1] + 90) % 360, obj.rotation[2]] })}>Turn 90°</button>
+          <button onClick={() => update({ position: [obj.position[0], 0, obj.position[2]] })}>To the ground</button>
+          <button onClick={() => update({ rotation: [0, 0, 0], scale: [1, 1, 1] })}>Reset</button>
         </div>
       </div>
 
       <div>
-        <h3>Rejilla</h3>
+        <h3>Grid</h3>
         <div className="field">
-          <span>Casilla</span>
+          <span>Cell</span>
           <div className="vec3" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <NumberInput axis="x" value={cell[0]} step={1} onCommit={(v) => setCell(Math.round(v), cell[1])} onLive={(v) => setCell(Math.round(v), cell[1])} />
             <NumberInput axis="z" value={cell[1]} step={1} onCommit={(v) => setCell(cell[0], Math.round(v))} onLive={(v) => setCell(cell[0], Math.round(v))} />
           </div>
         </div>
         <div className="kv">
-          Mundo: <b>{wp.map((v) => Math.round(v)).join(', ')}</b> · casilla de {grid.cellSize} u
+          World: <b>{wp.map((v) => Math.round(v)).join(', ')}</b> · {grid.cellSize} u cells
         </div>
         <div className="btn-row" style={{ marginTop: 6 }}>
-          <button onClick={() => setCell(cell[0], cell[1])}>Centrar en la casilla</button>
+          <button onClick={() => setCell(cell[0], cell[1])}>Center on the cell</button>
         </div>
       </div>
 
@@ -239,7 +239,7 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
 
       {obj.asset && ![GRASS_ASSET, TERRAIN_ASSET, STAIRS_ASSET, TRIGGER_ASSET].includes(obj.asset) && (
         <div>
-          <h3>Modelo</h3>
+          <h3>Model</h3>
           {asset && thumbs.has(asset.id) && <img className="insp-thumb" src={thumbUrl(asset.id, thumbVersion)} />}
           <div className="kv">
             {asset ? (
@@ -247,14 +247,14 @@ function ObjectInspector({ obj }: { obj: MapObject }) {
                 <b>{asset.name}</b>
                 <br />
                 {CATEGORY_LABELS[asset.category]}
-                {asset.zone ? ` · de ${asset.zone}` : ''}
+                {asset.zone ? ` · from ${asset.zone}` : ''}
                 <br />
-                Tamaño: {Math.round(asset.bounds[3] - asset.bounds[0])} × {Math.round(asset.bounds[4] - asset.bounds[1])} × {Math.round(asset.bounds[5] - asset.bounds[2])} u · {asset.triangles} triángulos
+                Size: {Math.round(asset.bounds[3] - asset.bounds[0])} × {Math.round(asset.bounds[4] - asset.bounds[1])} × {Math.round(asset.bounds[5] - asset.bounds[2])} u · {asset.triangles} triangles
                 <br />
-                <span style={{ fontSize: 11 }}>{asset.source.kind === 'model' ? asset.source.path ?? asset.source.pak : asset.source.kind === 'tile' ? `textura ${asset.source.texture}` : asset.source.kind === 'marker' ? 'marcador del editor' : asset.source.pak}</span>
+                <span style={{ fontSize: 11 }}>{asset.source.kind === 'model' ? asset.source.path ?? asset.source.pak : asset.source.kind === 'tile' ? `texture ${asset.source.texture}` : asset.source.kind === 'marker' ? 'an editor object' : asset.source.pak}</span>
               </>
             ) : (
-              <span style={{ color: 'var(--danger)' }}>"{obj.asset}" no está en el catálogo</span>
+              <span style={{ color: 'var(--danger)' }}>"{obj.asset}" is not in the catalog</span>
             )}
           </div>
         </div>
@@ -272,11 +272,11 @@ function MultiInspector({ objs }: { objs: MapObject[] }) {
     <div className="insp">
       <div className="kv">{objs.map((o) => o.name).join(', ')}</div>
       <div className="btn-row">
-        <button onClick={() => each((o) => ({ position: [snap(o.position[0], grid.originX), o.position[1], snap(o.position[2], grid.originZ)] }))}>Centrar en casillas</button>
-        <button onClick={() => each((o) => ({ position: [o.position[0], 0, o.position[2]] }))}>Al suelo</button>
-        <button onClick={() => each((o) => ({ rotation: [o.rotation[0], (o.rotation[1] + 90) % 360, o.rotation[2]] }))}>Girar 90°</button>
-        <button onClick={() => ed().groupSelected()}>Agrupar</button>
-        <button onClick={() => ed().removeSelected()}>Eliminar</button>
+        <button onClick={() => each((o) => ({ position: [snap(o.position[0], grid.originX), o.position[1], snap(o.position[2], grid.originZ)] }))}>Center on cells</button>
+        <button onClick={() => each((o) => ({ position: [o.position[0], 0, o.position[2]] }))}>To the ground</button>
+        <button onClick={() => each((o) => ({ rotation: [o.rotation[0], (o.rotation[1] + 90) % 360, o.rotation[2]] }))}>Turn 90°</button>
+        <button onClick={() => ed().groupSelected()}>Group</button>
+        <button onClick={() => ed().removeSelected()}>Delete</button>
       </div>
     </div>
   );
@@ -297,58 +297,58 @@ function MapInspector() {
   return (
     <div className="insp">
       <div>
-        <h3>Mapa</h3>
+        <h3>Map</h3>
         <div className="field">
-          <span>Nombre</span>
+          <span>Name</span>
           <input value={doc.name} onChange={(e) => ed().setMapInfo({ name: e.target.value })} />
         </div>
         <div className="field">
-          <span>Autor</span>
+          <span>Author</span>
           <input value={doc.author} onChange={(e) => ed().setMapInfo({ author: e.target.value })} />
         </div>
         <div className="field" style={{ alignItems: 'start' }}>
-          <span>Descripción</span>
+          <span>Description</span>
           <textarea rows={3} value={doc.description} onChange={(e) => ed().setMapInfo({ description: e.target.value })} />
         </div>
-        <div className="kv">{filePath ?? 'Sin guardar'}</div>
+        <div className="kv">{filePath ?? 'Not saved'}</div>
       </div>
       <div>
-        <h3>Rejilla</h3>
+        <h3>Grid</h3>
         <div className="field">
-          <span>Casillas</span>
+          <span>Cells</span>
           <div className="vec3" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <NumberInput axis="x" value={g.width} step={1} onCommit={(v) => ed().setGrid({ width: Math.max(1, Math.min(512, Math.round(v))) })} onLive={() => {}} />
             <NumberInput axis="z" value={g.depth} step={1} onCommit={(v) => ed().setGrid({ depth: Math.max(1, Math.min(512, Math.round(v))) })} onLive={() => {}} />
           </div>
         </div>
         <div className="field">
-          <span>Origen</span>
+          <span>Origin</span>
           <div className="vec3" style={{ gridTemplateColumns: '1fr 1fr' }}>
             <NumberInput axis="x" value={g.originX} step={g.cellSize} onCommit={(v) => ed().setGrid({ originX: Math.round(v / g.cellSize) * g.cellSize })} onLive={() => {}} />
             <NumberInput axis="z" value={g.originZ} step={g.cellSize} onCommit={(v) => ed().setGrid({ originZ: Math.round(v / g.cellSize) * g.cellSize })} onLive={() => {}} />
           </div>
         </div>
         <div className="field">
-          <span>Casilla</span>
+          <span>Cell</span>
           <select value={g.cellSize} onChange={(e) => ed().setGrid({ cellSize: Number(e.target.value) })}>
-            <option value={100}>100 u (la del juego)</option>
+            <option value={100}>100 u (the game's)</option>
             <option value={50}>50 u</option>
             <option value={200}>200 u</option>
           </select>
         </div>
         <div className="btn-row">
-          <button onClick={center}>Centrar en el origen</button>
+          <button onClick={center}>Center on the origin</button>
         </div>
         <p className="kv">
-          Como en el juego, una casilla mide 100 unidades (una roca de Fuerza o una baldosa ocupan una). Los objetos se colocan en el
-          centro de las casillas.
+          As in the game, a cell is 100 units (a Strength boulder or a tile takes one). Objects are placed on the cells'
+          centers.
         </p>
       </div>
       <GroundSection />
       <div>
-        <h3>Contenido</h3>
+        <h3>Contents</h3>
         <div className="kv">
-          {doc.objects.length} objetos
+          {doc.objects.length} objects
           {[...counts].map(([c, n]) => (
             <div key={c}>
               {CATEGORY_LABELS[c as keyof typeof CATEGORY_LABELS]}: <b>{n}</b>
@@ -369,20 +369,20 @@ function GroundSection() {
   const tiles = doc.objects.filter((o) => o.asset && assets.get(o.asset)?.source.kind === 'tile').length;
   return (
     <div>
-      <h3>Suelo en el juego</h3>
+      <h3>Ground in the game</h3>
       <div className="field">
-        <span>Pradera del hueco</span>
+        <span>Slot meadow</span>
         <select
           value={doc.slotGround === undefined ? 'auto' : doc.slotGround ? 'yes' : 'no'}
           onChange={(e) => ed().setMapInfo({ slotGround: e.target.value === 'auto' ? undefined : e.target.value === 'yes' })}
         >
-          <option value="auto">Automática ({tiles ? 'no: el mapa tiene baldosas' : 'sí: el mapa no tiene baldosas'})</option>
-          <option value="yes">Sí</option>
+          <option value="auto">Automatic ({tiles ? 'no: the map has tiles' : 'yes: the map has no tiles'})</option>
+          <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
       </div>
       <div className="field">
-        <span>Borde exterior</span>
+        <span>Outer border</span>
         {doc.border ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 56px', gap: 6 }}>
             <TexturePicker value={doc.border.texture} onChange={(texture) => ed().setMapInfo({ border: { ...doc.border!, texture } })} prefer={/grass/} />
@@ -391,7 +391,7 @@ function GroundSection() {
               min={0}
               max={64}
               value={doc.border.cells}
-              title="Ancho en casillas (0: sin borde)"
+              title="Width in cells (0: no border)"
               onChange={(e) => {
                 const cells = Math.max(0, Math.min(64, Math.round(Number(e.target.value) || 0)));
                 ed().setMapInfo({ border: cells ? { ...doc.border!, cells } : null });
@@ -399,21 +399,21 @@ function GroundSection() {
             />
           </div>
         ) : (
-          <button onClick={() => ed().setMapInfo({ border: { texture: 'grass01_com', cells: 12 } })}>Añadir borde</button>
+          <button onClick={() => ed().setMapInfo({ border: { texture: 'grass01_com', cells: 12 } })}>Add a border</button>
         )}
       </div>
       <div className="field">
-        <span>Rellenar</span>
+        <span>Fill</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 6 }}>
           <TexturePicker value={fillTex} onChange={(t) => useEditor.setState({ fillTexture: t })} prefer={/grass/} />
-          <button onClick={() => ed().fillGround(fillTex)} title="Cubre con baldosas de 4 × 4 casillas lo que aún no tiene baldosas">
-            Rellenar
+          <button onClick={() => ed().fillGround(fillTex)} title="Covers with 4 × 4-cell tiles whatever has no tiles yet">
+            Fill
           </button>
         </div>
       </div>
       <p className="kv">
-        La <b>pradera del hueco</b> es el suelo de la sala de pruebas que el mapa sustituye (40 × 40 casillas). Fuera del mapa el juego
-        solo muestra su fondo: el <b>borde exterior</b> pone suelo alrededor (solo se ve, no se pisa).
+        The <b>slot meadow</b> is the ground of the test room the map replaces (40 × 40 cells). Beyond the map the game only shows
+        its background: the <b>outer border</b> puts ground around it (only drawn, it can't be walked on).
       </p>
     </div>
   );

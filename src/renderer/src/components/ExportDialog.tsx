@@ -7,16 +7,15 @@ import { docForExport } from '../actions';
 import type { ExportResult } from '../../../preload/index';
 
 const SLOTS = [
-  ['test_chr01', 'Hueco 1 (test_chr01)'],
-  ['test_chr02', 'Hueco 2 (test_chr02)'],
-  ['test_chr03', 'Hueco 3 (test_chr03)'],
-  ['test_chr04', 'Hueco 4 (test_chr04)'],
+  ['test_chr01', 'Slot 1 (test_chr01)'],
+  ['test_chr02', 'Slot 2 (test_chr02)'],
+  ['test_chr03', 'Slot 3 (test_chr03)'],
+  ['test_chr04', 'Slot 4 (test_chr04)'],
 ];
 
 export function ExportDialog() {
   const open = useUi((s) => s.exportOpen);
   const objects = useEditor((s) => s.doc.objects);
-  const grid = useEditor((s) => s.doc.grid);
   const name = useEditor((s) => s.doc.name);
   const [dir, setDir] = useState('');
   const [slot, setSlot] = useState('test_chr01');
@@ -35,7 +34,6 @@ export function ExportDialog() {
 
   const hasSpawn = objects.some((o) => o.asset === 'lg.spawn');
   const hasExit = objects.some((o) => o.asset === 'lg.exit');
-  const tiles = objects.filter((o) => o.asset?.startsWith('tile.')).length;
   const grass = objects.filter((o) => o.asset === 'lg.grass' && o.visible);
   const badGrass = grass.filter((o) => (o.grass?.wild.slots ?? []).reduce((n, s) => n + s.rate, 0) !== 100).length;
   const close = () => !busy && useUi.setState({ exportOpen: false });
@@ -56,22 +54,22 @@ export function ExportDialog() {
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="modal" style={{ width: 'min(640px, 94vw)' }}>
-        <h2>Exportar al juego</h2>
+        <h2>Export to the game</h2>
         <p>
-          Crea un mod para Let's Go Recomp con <b>{name}</b>: el mapa ocupa uno de los mapas sin usar del juego y en{' '}
-          <b>Pueblo Paleta</b> aparece un teletransportador (en el camino entre las casas del norte) que lleva hasta él. En el mapa, la
-          baldosa de salida devuelve a Pueblo Paleta.
+          Makes a Let's Go Recomp mod with <b>{name}</b>: the map takes the place of one of the game's unused maps, and a teleport
+          pad appears in <b>Pallet Town</b> (on the path between the northern houses) that leads to it. In the map, the exit pad
+          takes you back to Pallet Town.
         </p>
         <div className="insp" style={{ padding: 0 }}>
           <div className="field">
-            <span>Carpeta mods</span>
+            <span>Mods folder</span>
             <div style={{ display: 'flex', gap: 6 }}>
               <input value={dir} onChange={(e) => setDir(e.target.value)} style={{ flex: 1 }} placeholder="…\LetsGoRecomp\mods" />
-              <button onClick={async () => setDir((await window.api.pickModsDir()) ?? dir)}>Elegir…</button>
+              <button onClick={async () => setDir((await window.api.pickModsDir()) ?? dir)}>Choose…</button>
             </div>
           </div>
           <div className="field">
-            <span>Mapa del juego</span>
+            <span>Game map</span>
             <select value={slot} onChange={(e) => setSlot(e.target.value)}>
               {SLOTS.map(([v, l]) => (
                 <option key={v} value={v}>
@@ -81,52 +79,43 @@ export function ExportDialog() {
             </select>
           </div>
           <div className="kv">
-            {hasSpawn ? '✔ Punto de llegada colocado' : '• Sin punto de llegada: se llega al centro de la rejilla'}
+            {hasSpawn ? '✔ Arrival point placed' : '• No arrival point: the player arrives at the middle of the grid'}
             <br />
-            {hasExit ? '✔ Salida colocada' : '• Sin salida: se pone 3 casillas al sur de la llegada'}
+            {hasExit ? '✔ Exit placed' : '• No exit: it goes 3 cells south of the arrival'}
             <br />
-            {grid.width > 40 || grid.depth > 40 ? '⚠ La rejilla pasa de 40 × 40 casillas: el suelo base solo cubre 40 × 40' : '✔ Tamaño de la rejilla dentro del suelo base (40 × 40)'}
-            <br />
-            {grass.length ? `✔ ${grass.length} zonas de hierba con Pokémon salvajes` : '• Sin zonas de hierba (no habrá Pokémon salvajes)'}
+            {grass.length ? `✔ ${grass.length} grass zones with wild Pokémon` : '• No grass zones (no wild Pokémon)'}
             {badGrass > 0 && (
               <>
-                <br />⚠ {badGrass} zonas de hierba cuyas probabilidades no suman 100 %
-              </>
-            )}
-            {tiles > 0 && (
-              <>
-                <br />⚠ {tiles} baldosas generadas por el editor no se exportan todavía (usa suelos de las zonas del juego)
+                <br />⚠ {badGrass} grass zones whose chances don't add up to 100 %
               </>
             )}
           </div>
         </div>
-        {busy && <p>Construyendo el mapa… (la primera vez indexa los archivos del juego y tarda unos segundos)</p>}
+        {busy && <p>Building the map… (the first time it indexes the game's files and takes a few seconds)</p>}
         {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
         {result && (
           <div className="kv" style={{ marginTop: 10 }}>
-            <b>Mod creado en {result.dir}</b>
+            <b>Mod made in {result.dir}</b>
             <br />
-            {result.stats.objects} objetos · {result.stats.materials} materiales · {result.stats.textures} texturas · {result.stats.triangles} triángulos
-            {result.warnings.filter((w) => !w.includes('baldosas')).length > 0 && (
+            {result.stats.objects} objects · {result.stats.materials} materials · {result.stats.textures} textures · {result.stats.triangles} triangles
+            {result.warnings.length > 0 && (
               <ul style={{ margin: '6px 0', paddingLeft: 18, maxHeight: 120, overflow: 'auto' }}>
-                {result.warnings
-                  .filter((w) => !w.includes('baldosas'))
-                  .map((w, i) => (
-                    <li key={i}>{w}</li>
-                  ))}
+                {result.warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
               </ul>
             )}
             <br />
-            Actívalo en la pestaña <b>Mods</b> del lanzador de Let's Go Recomp (y desactiva otros mods de mapas).
+            Enable it in the <b>Mods</b> tab of the Let's Go Recomp launcher (and disable other map mods).
           </div>
         )}
         <div className="actions">
-          {result && <button onClick={() => window.api.openPath(result.dir)}>Abrir carpeta</button>}
+          {result && <button onClick={() => window.api.openPath(result.dir)}>Open folder</button>}
           <button onClick={close} disabled={busy}>
-            Cerrar
+            Close
           </button>
           <button className="primary" onClick={run} disabled={busy || !dir}>
-            {busy ? 'Exportando…' : 'Exportar'}
+            {busy ? 'Exporting…' : 'Export'}
           </button>
         </div>
       </div>

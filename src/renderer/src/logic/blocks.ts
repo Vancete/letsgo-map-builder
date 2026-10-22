@@ -2,13 +2,13 @@
 // numbers and variables. shared/logic.ts reads what they save; keep both in step.
 import * as Blockly from 'blockly/core';
 import 'blockly/blocks';
-import * as Es from 'blockly/msg/es';
+import * as En from 'blockly/msg/en';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { BLOCK } from '@shared/logic';
 import { SIGN_ASSET, TRIGGER_ASSET } from '@shared/types';
 import { useEditor } from '../store';
 
-Blockly.setLocale(Es as unknown as { [key: string]: string });
+Blockly.setLocale(En as unknown as { [key: string]: string });
 
 export const COLOR = { events: 35, text: 160, logic: 210, math: 230, vars: 330 };
 
@@ -18,8 +18,8 @@ function objectOptions(asset: string, current: () => string | null): () => Block
     const objs = useEditor.getState().doc.objects.filter((o) => o.asset === asset);
     const opts: Blockly.MenuOption[] = objs.map((o) => [o.name, o.id]);
     const cur = current();
-    if (cur && cur !== 'NONE' && !objs.some((o) => o.id === cur)) opts.push(['(borrado)', cur]);
-    return opts.length ? opts : [['(no hay ninguno en el mapa)', 'NONE']];
+    if (cur && cur !== 'NONE' && !objs.some((o) => o.id === cur)) opts.push(['(deleted)', cur]);
+    return opts.length ? opts : [['(none in the map)', 'NONE']];
   };
 }
 
@@ -32,22 +32,22 @@ export function defineBlocks() {
       init(this: Blockly.Block) {
         const dd = new Blockly.FieldDropdown(objectOptions(asset, () => (this.getFieldValue ? this.getFieldValue(field) : null)));
         this.appendDummyInput().appendField(label).appendField(dd, field);
-        this.appendStatementInput('DO').appendField('hacer');
+        this.appendStatementInput('DO').appendField('do');
         this.setColour(COLOR.events);
         this.setTooltip(tip);
       },
     };
   };
-  eventBlock(BLOCK.onRead, 'Al leer el cartel', SIGN_ASSET, 'SIGN', 'Cuando el jugador lee este cartel (A delante de él). Si el cartel tiene este bloque, su texto del inspector no se usa.');
-  eventBlock(BLOCK.onStep, 'Al pisar la zona', TRIGGER_ASSET, 'ZONE', 'Cuando el jugador entra en esta zona de activación (una vez por visita al mapa).');
+  eventBlock(BLOCK.onRead, 'When reading the sign', SIGN_ASSET, 'SIGN', 'When the player reads this sign (A in front of it). If the sign has this block, its text in the inspector is not used.');
+  eventBlock(BLOCK.onStep, 'When stepping into the zone', TRIGGER_ASSET, 'ZONE', 'When the player walks into this trigger zone (once per visit to the map).');
   Blockly.Blocks[BLOCK.showText] = {
     init(this: Blockly.Block) {
-      this.appendDummyInput().appendField('mostrar texto');
-      this.appendDummyInput().appendField(new FieldMultilineInput('Escribe aquí el texto.'), 'TEXT');
+      this.appendDummyInput().appendField('show text');
+      this.appendDummyInput().appendField(new FieldMultilineInput('Write the text here.'), 'TEXT');
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setColour(COLOR.text);
-      this.setTooltip('Abre la ventana de mensaje con este texto. Dos líneas por ventana; una línea en blanco empieza otra ventana.');
+      this.setTooltip('Opens the message window with this text. Two lines per window; an empty line starts another window.');
     },
   };
 }
@@ -58,7 +58,7 @@ export const TOOLBOX: Blockly.utils.toolbox.ToolboxDefinition = {
   contents: [
     {
       kind: 'category',
-      name: 'Eventos',
+      name: 'Events',
       colour: String(COLOR.events),
       contents: [
         { kind: 'block', type: BLOCK.onRead },
@@ -67,13 +67,13 @@ export const TOOLBOX: Blockly.utils.toolbox.ToolboxDefinition = {
     },
     {
       kind: 'category',
-      name: 'Mensajes',
+      name: 'Messages',
       colour: String(COLOR.text),
       contents: [{ kind: 'block', type: BLOCK.showText }],
     },
     {
       kind: 'category',
-      name: 'Condiciones',
+      name: 'Conditions',
       colour: String(COLOR.logic),
       contents: [
         { kind: 'block', type: 'controls_if' },
@@ -85,7 +85,7 @@ export const TOOLBOX: Blockly.utils.toolbox.ToolboxDefinition = {
     },
     {
       kind: 'category',
-      name: 'Constantes',
+      name: 'Constants',
       colour: String(COLOR.math),
       contents: [
         { kind: 'block', type: 'logic_boolean' },

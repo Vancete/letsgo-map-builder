@@ -14,7 +14,7 @@ export function SetupScreen() {
 
   const use = async (path: string) => {
     if (!(await window.api.validateGame(path))) {
-      setError(`No se encuentran los archivos del juego en ${path}`);
+      setError(`The game's files are not in ${path}`);
       return;
     }
     await window.api.setSettings({ gamePath: path });
@@ -25,7 +25,7 @@ export function SetupScreen() {
   const pick = async (file: boolean) => {
     const r = await window.api.pickGame(file);
     if (!r) return;
-    if (!r.valid) setError(`No se encuentran los archivos del juego en ${r.path}`);
+    if (!r.valid) setError(`The game's files are not in ${r.path}`);
     else use(r.path);
   };
 
@@ -42,30 +42,30 @@ export function SetupScreen() {
       <div className="setup">
         <h1>Let's Go Map Builder</h1>
         <p>
-          Editor de mapas para <b>Pokémon: Let's Go, Pikachu! / Eevee!</b>. Los modelos del mundo (árboles, hierba, saltos,
-          suelos, bancos, farolas, Centros Pokémon, tiendas...) se cargan de los archivos de tu copia del juego.
+          Map editor for <b>Pokémon: Let's Go, Pikachu! / Eevee!</b>. The world's models (trees, grass, ledges, ground, benches,
+          street lamps, Pokémon Centers, shops...) are loaded from the files of your copy of the game.
         </p>
         <p>
-          Elige la carpeta de tu instalación de <b>Let's Go Recomp</b> (usa <code>extracted/romfs.bin</code>), una carpeta{' '}
-          <code>romfs</code> extraída o el archivo <code>romfs.bin</code>.
+          Choose the folder of your <b>Let's Go Recomp</b> install (it uses <code>extracted/romfs.bin</code>), an extracted{' '}
+          <code>romfs</code> folder or the <code>romfs.bin</code> file.
         </p>
         <div className="paths">
-          {found === null && <span className="kv">Buscando instalaciones...</span>}
+          {found === null && <span className="kv">Looking for installs...</span>}
           {found?.map((p) => (
             <button key={p} onClick={() => use(p)} className={p === current ? 'primary' : ''}>
               📁 {p}
             </button>
           ))}
-          {found?.length === 0 && <span className="kv">No se ha encontrado ninguna automáticamente.</span>}
+          {found?.length === 0 && <span className="kv">None was found automatically.</span>}
         </div>
         <div className="btn-row">
           <button className="primary" onClick={() => pick(false)}>
-            Elegir carpeta...
+            Choose folder...
           </button>
-          <button onClick={() => pick(true)}>Elegir romfs.bin...</button>
+          <button onClick={() => pick(true)}>Choose romfs.bin...</button>
           {current && (
             <button onClick={cancel} style={{ marginLeft: 'auto' }}>
-              Cancelar
+              Cancel
             </button>
           )}
         </div>
@@ -81,7 +81,7 @@ export function BuildScreen() {
 
   useEffect(() => {
     const off = window.api.onCatalogProgress((p) => useUi.getState().setBuild(p));
-    useUi.getState().setBuild({ phase: 'Preparando', done: 0, total: 1 });
+    useUi.getState().setBuild({ phase: 'Getting ready', done: 0, total: 1 });
     window.api
       .buildCatalog()
       .then((cat) => {
@@ -97,15 +97,15 @@ export function BuildScreen() {
   return (
     <div className="screen">
       <div className="setup">
-        <h1>Preparando el catálogo</h1>
+        <h1>Building the catalog</h1>
         <p>
-          Primera vez: se extraen los modelos y texturas de los archivos del juego y se guardan en la caché del editor. Después
-          se generarán las miniaturas de todos los objetos (se pueden regenerar desde la barra de herramientas).
+          The models and textures are extracted from the game's files and kept in the editor's cache. Then thumbnails of every
+          object are made (they can be made again from the Catalog menu).
         </p>
         {error ? (
           <>
             <p className="err">{error}</p>
-            <button onClick={() => useUi.getState().setPhase('setup')}>Cambiar carpeta del juego</button>
+            <button onClick={() => useUi.getState().setPhase('setup')}>Change the game folder</button>
           </>
         ) : (
           <>

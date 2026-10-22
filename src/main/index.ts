@@ -80,7 +80,7 @@ function registerIpc() {
   ipcMain.handle('game:detect', () => detectGamePaths(homedir()));
   ipcMain.handle('game:pick', async (_e, file: boolean) => {
     const r = await dialog.showOpenDialog(win!, {
-      title: file ? 'Selecciona romfs.bin' : 'Selecciona la carpeta del juego (romfs, extracción o instalación de Let\'s Go Recomp)',
+      title: file ? 'Choose romfs.bin' : 'Choose the game folder (romfs, an extracted dump or a Let\'s Go Recomp install)',
       properties: file ? ['openFile'] : ['openDirectory'],
       filters: file ? [{ name: 'RomFS', extensions: ['bin', 'romfs'] }] : undefined,
     });
@@ -91,8 +91,8 @@ function registerIpc() {
 
   ipcMain.handle('catalog:get', () => readCatalog());
   ipcMain.handle('catalog:build', () => {
-    if (building) return Promise.reject(new Error('Ya se está generando el catálogo'));
-    if (!validGamePath(settings.gamePath)) return Promise.reject(new Error('Carpeta del juego no válida'));
+    if (building) return Promise.reject(new Error('The catalog is already being built'));
+    if (!validGamePath(settings.gamePath)) return Promise.reject(new Error('Not a valid game folder'));
     building = true;
     mkdirSync(cacheDir, { recursive: true });
     return new Promise<Catalog>((resolve, reject) => {
@@ -102,7 +102,7 @@ function registerIpc() {
         else if (m.type === 'done') {
           building = false;
           const c = readCatalog();
-          c ? resolve(c) : reject(new Error('El catálogo no se pudo leer'));
+          c ? resolve(c) : reject(new Error('The catalog could not be read'));
         } else if (m.type === 'error') {
           building = false;
           reject(new Error(m.message));
@@ -133,9 +133,9 @@ function registerIpc() {
     rmSync(join(cacheDir, 'thumbs'), { recursive: true, force: true });
   });
 
-  const mapFilters = [{ name: "Mapa de Let's Go", extensions: ['lgmap'] }];
+  const mapFilters = [{ name: "Let's Go map", extensions: ['lgmap'] }];
   ipcMain.handle('map:open', async () => {
-    const r = await dialog.showOpenDialog(win!, { title: 'Abrir mapa', filters: mapFilters, properties: ['openFile'] });
+    const r = await dialog.showOpenDialog(win!, { title: 'Open map', filters: mapFilters, properties: ['openFile'] });
     if (r.canceled || !r.filePaths[0]) return null;
     const doc = readMap(r.filePaths[0]);
     setSettings(addRecent(settings, r.filePaths[0]));
@@ -149,7 +149,7 @@ function registerIpc() {
   ipcMain.handle('map:save', async (_e, path: string | null, doc: MapDocument) => {
     let target = path;
     if (!target) {
-      const r = await dialog.showSaveDialog(win!, { title: 'Guardar mapa', filters: mapFilters, defaultPath: `${doc.name || 'mapa'}.lgmap` });
+      const r = await dialog.showSaveDialog(win!, { title: 'Save map', filters: mapFilters, defaultPath: `${doc.name || 'map'}.lgmap` });
       if (r.canceled || !r.filePath) return null;
       target = r.filePath;
     }
@@ -159,7 +159,7 @@ function registerIpc() {
   });
   ipcMain.handle('mod:pickDir', async () => {
     const r = await dialog.showOpenDialog(win!, {
-      title: "Carpeta mods/ de Let's Go Recomp",
+      title: "Let's Go Recomp's mods/ folder",
       defaultPath: settings.modsPath || guessModsPath(settings.gamePath) || undefined,
       properties: ['openDirectory', 'createDirectory'],
     });
@@ -169,7 +169,7 @@ function registerIpc() {
   });
   ipcMain.handle('mod:defaultDir', () => settings.modsPath || guessModsPath(settings.gamePath) || '');
   ipcMain.handle('mod:export', (_e, doc: MapDocument, slot: string, modsDir: string) => {
-    if (!validGamePath(settings.gamePath)) return Promise.reject(new Error('Carpeta del juego no válida'));
+    if (!validGamePath(settings.gamePath)) return Promise.reject(new Error('Not a valid game folder'));
     mkdirSync(modsDir, { recursive: true });
     setSettings({ modsPath: modsDir });
     return new Promise((resolve, reject) => {

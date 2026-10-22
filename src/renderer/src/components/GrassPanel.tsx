@@ -39,23 +39,23 @@ export function GrassPanel({ obj }: { obj: MapObject }) {
 
   return (
     <div>
-      <h3>Zona de hierba alta</h3>
+      <h3>Tall-grass zone</h3>
       <div className="field">
-        <span>Casillas</span>
+        <span>Cells</span>
         <div className="vec3" style={{ gridTemplateColumns: '1fr 1fr' }}>
           <IntInput value={z.w} min={1} max={40} onChange={(w) => set({ w })} />
           <IntInput value={z.d} min={1} max={40} onChange={(d) => set({ d })} />
         </div>
       </div>
       <div className="field">
-        <span>Nivel</span>
+        <span>Level</span>
         <div className="vec3" style={{ gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}>
           <IntInput value={z.wild.minLevel} min={1} max={100} onChange={(minLevel) => setWild({ minLevel, maxLevel: Math.max(minLevel, z.wild.maxLevel) })} />
-          <span className="kv">a</span>
+          <span className="kv">to</span>
           <IntInput value={z.wild.maxLevel} min={1} max={100} onChange={(maxLevel) => setWild({ maxLevel, minLevel: Math.min(maxLevel, z.wild.minLevel) })} />
         </div>
       </div>
-      <h3 style={{ marginTop: 10 }}>Pokémon salvajes</h3>
+      <h3 style={{ marginTop: 10 }}>Wild Pokémon</h3>
       <div className="slots">
         {z.wild.slots.map((s, i) => (
           <div className="slot" key={i}>
@@ -66,9 +66,9 @@ export function GrassPanel({ obj }: { obj: MapObject }) {
                 </option>
               ))}
             </select>
-            <input type="number" min={1} max={100} value={s.rate} onChange={(e) => setSlot(i, { rate: Math.max(0, Math.min(100, Math.round(Number(e.target.value) || 0))) })} title="Probabilidad (%)" />
+            <input type="number" min={1} max={100} value={s.rate} onChange={(e) => setSlot(i, { rate: Math.max(0, Math.min(100, Math.round(Number(e.target.value) || 0))) })} title="Chance (%)" />
             <span className="kv">%</span>
-            <button className="icon" title="Quitar" onClick={() => setWild({ slots: z.wild.slots.filter((_, k) => k !== i) })}>
+            <button className="icon" title="Remove" onClick={() => setWild({ slots: z.wild.slots.filter((_, k) => k !== i) })}>
               ✕
             </button>
           </div>
@@ -76,20 +76,20 @@ export function GrassPanel({ obj }: { obj: MapObject }) {
       </div>
       <div className="btn-row" style={{ marginTop: 6 }}>
         <button disabled={z.wild.slots.length >= MAX_SLOTS} onClick={() => setWild({ slots: [...z.wild.slots, { species: 16, rate: 10 }] })}>
-          + Añadir Pokémon
+          + Add Pokémon
         </button>
         <button disabled={!z.wild.slots.length} onClick={even}>
-          Repartir 100 %
+          Share 100 %
         </button>
       </div>
       <div className="kv" style={{ marginTop: 6, color: total === 100 ? undefined : 'var(--danger)' }}>
         Total: <b>{total} %</b>
-        {total !== 100 && ' — debería sumar 100 %'}
-        {z.wild.slots.length >= MAX_SLOTS && ' · máximo 10 Pokémon por zona'}
+        {total !== 100 && ' — it should add up to 100 %'}
+        {z.wild.slots.length >= MAX_SLOTS && ' · at most 10 Pokémon per zone'}
       </div>
       <p className="kv">
-        En el juego la zona se llena de hierba alta y los Pokémon aparecen y deambulan por ella; al tocar uno empieza la captura. Cada
-        zona es una zona propia del juego, con su tabla, para Pikachu y Eevee por igual.
+        In the game the zone fills with tall grass and the Pokémon appear and wander in it; touching one starts the catch. Each
+        zone is a game zone of its own, with its table, the same for Pikachu and Eevee.
       </p>
     </div>
   );

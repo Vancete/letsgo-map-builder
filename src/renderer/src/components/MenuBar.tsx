@@ -1,4 +1,4 @@
-// The window's menu bar: Archivo, Editar, Ver, Catálogo, Ayuda. Everything the editor can do is here (with its
+// The window's menu bar: File, Edit, View, Catalog, Help. Everything the editor can do is here (with its
 // shortcut); the toolbar below keeps only the tools used all the time.
 import { useEffect, useRef, useState } from 'react';
 import { useEditor } from '../store';
@@ -25,18 +25,18 @@ function showControls() {
   useUi
     .getState()
     .ask(
-      'Controles',
+      'Controls',
       [
-        'Clic: seleccionar (Ctrl/Mayús: añadir a la selección)',
-        'Botón derecho / central / rueda: orbitar / desplazar / zoom',
-        'W / E / R: mover / rotar / escalar · Q: girar 90°',
-        'Flechas, RePág/AvPág: mover una casilla (Mayús: ¼), subir/bajar',
-        'X: ajuste a la rejilla · G: rejilla · T: vista cenital · F: encuadrar',
-        'Ctrl+D duplicar · Ctrl+G agrupar · Supr eliminar · Ctrl+A seleccionar todo',
-        'Ctrl+Z / Ctrl+Y: deshacer / rehacer',
-        'Ctrl+N / O / S / Mayús+S: nuevo / abrir / guardar / guardar como · Ctrl+E: exportar al juego · Ctrl+L: lógica',
+        'Click: select (Ctrl/Shift: add to the selection)',
+        'Right / middle button / wheel: orbit / pan / zoom',
+        'W / E / R: move / rotate / scale · Q: turn 90°',
+        'Arrows, PgUp/PgDn: move one cell (Shift: ¼), up/down',
+        'X: grid snapping · G: grid · T: top view · F: frame the selection',
+        'Ctrl+D duplicate · Ctrl+G group · Del delete · Ctrl+A select all',
+        'Ctrl+Z / Ctrl+Y: undo / redo',
+        'Ctrl+N / O / S / Shift+S: new / open / save / save as · Ctrl+E: export to the game · Ctrl+L: logic',
       ].join('\n'),
-      [{ label: 'Cerrar', value: 'ok', primary: true }],
+      [{ label: 'Close', value: 'ok', primary: true }],
     );
 }
 
@@ -70,69 +70,69 @@ export function MenuBar() {
 
   const menus: { name: string; items: Item[] }[] = [
     {
-      name: 'Archivo',
+      name: 'File',
       items: [
-        { label: 'Nuevo mapa', keys: 'Ctrl+N', action: newMap },
-        { label: 'Abrir…', keys: 'Ctrl+O', action: () => openMap() },
+        { label: 'New map', keys: 'Ctrl+N', action: newMap },
+        { label: 'Open…', keys: 'Ctrl+O', action: () => openMap() },
         {
-          label: 'Abrir reciente',
+          label: 'Open recent',
           disabled: !recent.length,
           sub: recent.map((p) => ({ label: p.split(/[\\/]/).pop() ?? p, keys: p.length > 60 ? `…${p.slice(-57)}` : p, action: () => openMap(p) })),
         },
         { sep: true },
-        { label: 'Guardar', keys: 'Ctrl+S', action: () => saveMap(false) },
-        { label: 'Guardar como…', keys: 'Ctrl+Mayús+S', action: () => saveMap(true) },
+        { label: 'Save', keys: 'Ctrl+S', action: () => saveMap(false) },
+        { label: 'Save as…', keys: 'Ctrl+Shift+S', action: () => saveMap(true) },
         { sep: true },
-        { label: 'Exportar al juego…', keys: 'Ctrl+E', action: exportMod },
+        { label: 'Export to the game…', keys: 'Ctrl+E', action: exportMod },
         { sep: true },
-        { label: 'Salir', action: async () => (await confirmDiscard()) && window.api.closeApp() },
+        { label: 'Quit', action: async () => (await confirmDiscard()) && window.api.closeApp() },
       ],
     },
     {
-      name: 'Editar',
+      name: 'Edit',
       items: [
-        { label: 'Deshacer', keys: 'Ctrl+Z', action: () => ed().undo(), disabled: !canUndo },
-        { label: 'Rehacer', keys: 'Ctrl+Y', action: () => ed().redo(), disabled: !canRedo },
+        { label: 'Undo', keys: 'Ctrl+Z', action: () => ed().undo(), disabled: !canUndo },
+        { label: 'Redo', keys: 'Ctrl+Y', action: () => ed().redo(), disabled: !canRedo },
         { sep: true },
-        { label: 'Duplicar', keys: 'Ctrl+D', action: () => ed().duplicateSelected(), disabled: !hasSel },
-        { label: 'Agrupar', keys: 'Ctrl+G', action: () => ed().groupSelected(), disabled: !hasSel },
-        { label: 'Girar 90°', keys: 'Q', action: rotateSelection, disabled: !hasSel },
-        { label: 'Eliminar', keys: 'Supr', action: () => ed().removeSelected(), disabled: !hasSel },
+        { label: 'Duplicate', keys: 'Ctrl+D', action: () => ed().duplicateSelected(), disabled: !hasSel },
+        { label: 'Group', keys: 'Ctrl+G', action: () => ed().groupSelected(), disabled: !hasSel },
+        { label: 'Turn 90°', keys: 'Q', action: rotateSelection, disabled: !hasSel },
+        { label: 'Delete', keys: 'Del', action: () => ed().removeSelected(), disabled: !hasSel },
         { sep: true },
-        { label: 'Seleccionar todo', keys: 'Ctrl+A', action: () => ed().select(ed().doc.objects.map((o) => o.id)) },
-        { label: 'Deseleccionar', keys: 'Esc', action: () => ed().select([]), disabled: !hasSel },
+        { label: 'Select all', keys: 'Ctrl+A', action: () => ed().select(ed().doc.objects.map((o) => o.id)) },
+        { label: 'Select none', keys: 'Esc', action: () => ed().select([]), disabled: !hasSel },
         { sep: true },
-        { label: 'Mover', keys: 'W', action: () => ed().setTool('translate') },
-        { label: 'Rotar', keys: 'E', action: () => ed().setTool('rotate') },
-        { label: 'Escalar', keys: 'R', action: () => ed().setTool('scale') },
+        { label: 'Move', keys: 'W', action: () => ed().setTool('translate') },
+        { label: 'Rotate', keys: 'E', action: () => ed().setTool('rotate') },
+        { label: 'Scale', keys: 'R', action: () => ed().setTool('scale') },
         { sep: true },
-        { label: `Rellenar el suelo con ${fillTexture}`, action: () => ed().fillGround(fillTexture) },
+        { label: `Fill the ground with ${fillTexture}`, action: () => ed().fillGround(fillTexture) },
       ],
     },
     {
-      name: 'Ver',
+      name: 'View',
       items: [
-        { label: 'Rejilla', keys: 'G', checked: showGrid, action: () => ed().toggleGrid() },
-        { label: 'Vista cenital', keys: 'T', checked: topView, action: () => ed().toggleTopView() },
-        { label: 'Encuadrar la selección', keys: 'F', action: () => window.dispatchEvent(new Event('lg:focus')) },
+        { label: 'Grid', keys: 'G', checked: showGrid, action: () => ed().toggleGrid() },
+        { label: 'Top view', keys: 'T', checked: topView, action: () => ed().toggleTopView() },
+        { label: 'Frame the selection', keys: 'F', action: () => window.dispatchEvent(new Event('lg:focus')) },
         { sep: true },
-        { label: 'Lógica del mapa (bloques)…', keys: 'Ctrl+L', action: () => openLogic() },
+        { label: 'Map logic (blocks)…', keys: 'Ctrl+L', action: () => openLogic() },
         { sep: true },
-        { label: 'Ajustar a la rejilla', keys: 'X', checked: snap.enabled, action: () => ed().setSnap({ enabled: !snap.enabled }) },
+        { label: 'Snap to the grid', keys: 'X', checked: snap.enabled, action: () => ed().setSnap({ enabled: !snap.enabled }) },
       ],
     },
     {
-      name: 'Catálogo',
+      name: 'Catalog',
       items: [
-        { label: 'Regenerar miniaturas', action: () => generateThumbs(true), disabled: !!thumbJob },
-        { label: 'Reconstruir el catálogo…', action: rebuildCatalog },
+        { label: 'Make thumbnails again', action: () => generateThumbs(true), disabled: !!thumbJob },
+        { label: 'Rebuild the catalog…', action: rebuildCatalog },
         { sep: true },
-        { label: 'Cambiar la carpeta del juego…', action: changeGameFolder },
+        { label: 'Change the game folder…', action: changeGameFolder },
       ],
     },
     {
-      name: 'Ayuda',
-      items: [{ label: 'Controles', action: showControls }],
+      name: 'Help',
+      items: [{ label: 'Controls', action: showControls }],
     },
   ];
 

@@ -55,21 +55,21 @@ export function Viewport() {
   return (
     <div className="view" ref={ref}>
       <div className="view-overlay">
-        <span className="chip">{topView ? 'Cenital' : 'Perspectiva'}</span>
+        <span className="chip">{topView ? 'Top view' : 'Perspective'}</span>
         <span className="chip">
-          {tool === 'translate' ? 'Mover' : tool === 'rotate' ? 'Rotar' : 'Escalar'}
-          {snap.enabled ? ' · ajuste' : ''}
+          {tool === 'translate' ? 'Move' : tool === 'rotate' ? 'Rotate' : 'Scale'}
+          {snap.enabled ? ' · snap' : ''}
         </span>
         {armedName && (
           <span className="chip" style={{ borderColor: 'var(--accent)' }}>
-            Colocando: <b>{armedName}</b> — clic para poner, Esc para terminar
+            Placing: <b>{armedName}</b> — click to place, Esc to stop
           </span>
         )}
       </div>
       <div className="view-help">
-        Clic: seleccionar · Botón derecho: orbitar · Central: desplazar · Rueda: zoom
+        Click: select · Right button: orbit · Middle: pan · Wheel: zoom
         <br />
-        W/E/R mover/rotar/escalar · Q girar 90° · Flechas: mover una casilla · F encuadrar · T cenital
+        W/E/R move/rotate/scale · Q turn 90° · Arrows: move one cell · F frame · T top view
       </div>
     </div>
   );

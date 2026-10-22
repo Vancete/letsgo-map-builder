@@ -1,7 +1,7 @@
 {
  "format": "letsgo-map",
  "version": 1,
- "name": "Pueblo Prueba",
+ "name": "Test Town",
  "author": "Ivan",
  "description": "",
  "grid": {
@@ -14,7 +14,7 @@
  "objects": [
   {
    "id": "omvi3cevu17qnw",
-   "name": "Punto de llegada",
+   "name": "Arrival point",
    "asset": "lg.spawn",
    "parent": null,
    "position": [-1150, 0, 800],
@@ -25,7 +25,7 @@
   },
   {
    "id": "omvi3cevu2kgmx",
-   "name": "Salida (teletransportador)",
+   "name": "Exit (teleport pad)",
    "asset": "lg.exit",
    "parent": null,
    "position": [-650, 0, 850],
@@ -267,7 +267,7 @@
   },
   {
    "id": "ograss1",
-   "name": "Zona de hierba",
+   "name": "Grass zone",
    "asset": "lg.grass",
    "parent": null,
    "position": [-1150, 0, 100],
@@ -296,7 +296,7 @@
   },
   {
    "id": "ograss2",
-   "name": "Zona de hierba 2",
+   "name": "Grass zone 2",
    "asset": "lg.grass",
    "parent": null,
    "position": [150, 0, 1150],
@@ -325,7 +325,7 @@
   },
   {
    "id": "omvi7jqs413kyy",
-   "name": "Elevación",
+   "name": "Raised ground",
    "asset": "lg.terrain",
    "parent": null,
    "position": [1300, 0, -150],
@@ -349,7 +349,7 @@
   },
   {
    "id": "omvi7jqs723lzs",
-   "name": "Escaleras",
+   "name": "Stairs",
    "asset": "lg.stairs",
    "parent": null,
    "position": [950, 0, -150],
@@ -366,7 +366,7 @@
   },
   {
    "id": "omvi7jqs937p67",
-   "name": "Cartel",
+   "name": "Sign",
    "asset": "lg.sign",
    "parent": null,
    "position": [-1450, 0, 650],
@@ -375,12 +375,12 @@
    "visible": true,
    "locked": false,
    "sign": {
-    "text": "¡Bienvenido a Pueblo Prueba!\nUn mapa hecho con Let's Go Map Builder.\n\nAl este hay un desnivel: se baja de un salto\ny se sube por las escaleras."
+    "text": "Welcome to Test Town!\nA map made with Let's Go Map Builder.\n\nTo the east there is a ledge: jump down it\nand climb back up the stairs."
    }
   },
   {
    "id": "omvi7jqs94k5ta",
-   "name": "Suelo (grass01_com)",
+   "name": "Ground (grass01_com)",
    "asset": null,
    "parent": null,
    "position": [0, 0, 0],
@@ -1096,7 +1096,7 @@
  ],
  "assets": {
   "lg.spawn": {
-   "name": "Punto de llegada",
+   "name": "Arrival point",
    "category": "marker",
    "source": {
     "kind": "marker",
@@ -1104,7 +1104,7 @@
    }
   },
   "lg.exit": {
-   "name": "Salida (teletransportador)",
+   "name": "Exit (teleport pad)",
    "category": "marker",
    "source": {
     "kind": "marker",
@@ -1230,7 +1230,7 @@
    }
   },
   "lg.grass": {
-   "name": "Zona de hierba alta (Pokémon salvajes)",
+   "name": "Tall-grass zone (wild Pokémon)",
    "category": "grass",
    "source": {
     "kind": "marker",
@@ -1238,7 +1238,7 @@
    }
   },
   "lg.terrain": {
-   "name": "Elevación (desnivel, saltos)",
+   "name": "Raised ground (cliffs, ledges)",
    "category": "ledge",
    "source": {
     "kind": "marker",
@@ -1246,7 +1246,7 @@
    }
   },
   "lg.stairs": {
-   "name": "Escaleras",
+   "name": "Stairs",
    "category": "ledge",
    "source": {
     "kind": "marker",
@@ -1254,7 +1254,7 @@
    }
   },
   "lg.sign": {
-   "name": "Cartel con texto",
+   "name": "Sign with text",
    "category": "street",
    "source": {
     "kind": "marker",

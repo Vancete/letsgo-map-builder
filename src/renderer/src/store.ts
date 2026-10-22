@@ -178,7 +178,7 @@ export const useEditor = create<EditorState>((set, get) => {
           });
         }
       if (!added.length) return;
-      const group: MapObject = { id: folder, name: `Suelo (${texture})`, asset: null, parent: null, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], visible: true, locked: true };
+      const group: MapObject = { id: folder, name: `Ground (${texture})`, asset: null, parent: null, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], visible: true, locked: true };
       apply(withObjects([...s.doc.objects, group, ...added]));
     },
 
@@ -188,7 +188,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const id = newId();
       const obj: MapObject = {
         id,
-        name: opts?.name ?? asset?.name ?? 'Grupo',
+        name: opts?.name ?? asset?.name ?? 'Group',
         asset: assetId,
         parent: opts?.parent ?? null,
         position,
@@ -199,7 +199,7 @@ export const useEditor = create<EditorState>((set, get) => {
         ...(assetId === GRASS_ASSET ? { grass: defaultGrass() } : {}),
         ...(assetId === TERRAIN_ASSET ? { terrain: defaultTerrain() } : {}),
         ...(assetId === STAIRS_ASSET ? { stairs: defaultStairs() } : {}),
-        ...(assetId === SIGN_ASSET ? { sign: { text: 'Escribe aquí el texto del cartel.' } } : {}),
+        ...(assetId === SIGN_ASSET ? { sign: { text: 'Write the sign\'s text here.' } } : {}),
         ...(assetId === TRIGGER_ASSET ? { trigger: { w: 1, d: 1 } } : {}),
       };
       apply(withObjects([...s.doc.objects, obj]));
@@ -261,7 +261,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const id = newId();
       const group: MapObject = {
         id,
-        name: 'Grupo',
+        name: 'Group',
         asset: null,
         parent: null,
         position: [0, 0, 0],

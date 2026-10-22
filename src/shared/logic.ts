@@ -2,7 +2,7 @@
 // JSON (no Blockly needed: the export runs in a worker) into a small program the game script is generated from
 // (amxgen.ts):
 //
-//   events      "Al leer el cartel X" (a sign), "Al pisar la zona X" (a trigger zone): each a list of statements
+//   events      "When reading sign X" (a sign), "When stepping into zone X" (a trigger zone): each a list of statements
 //   statements  show a text, set a variable, if / else if / else
 //   expressions numbers and true/false (constants), variables, comparisons, and / or / not, + - ×
 //
@@ -65,7 +65,7 @@ export function readProgram(ws: WorkspaceJson | null | undefined): Program {
 
   const expr = (b: BlockJson | undefined, where: string): Expr => {
     if (!b) {
-      errors.push(`${where}: falta un valor`);
+      errors.push(`${where}: a value is missing`);
       return { k: 'num', v: 0 };
     }
     switch (b.type) {
@@ -84,13 +84,13 @@ export function readProgram(ws: WorkspaceJson | null | undefined): Program {
       case 'math_arithmetic': {
         const op = b.fields?.OP as string;
         if (op !== 'ADD' && op !== 'MINUS' && op !== 'MULTIPLY') {
-          errors.push(`${where}: operación no admitida (${op})`);
+          errors.push(`${where}: unsupported operation (${op})`);
           return { k: 'num', v: 0 };
         }
         return { k: 'arith', op, a: expr(input(b, 'A'), where), b: expr(input(b, 'B'), where) };
       }
       default:
-        errors.push(`${where}: bloque de valor no admitido (${b.type})`);
+        errors.push(`${where}: unsupported value block (${b.type})`);
         return { k: 'num', v: 0 };
     }
   };
@@ -118,7 +118,7 @@ export function readProgram(ws: WorkspaceJson | null | undefined): Program {
           break;
         }
         default:
-          errors.push(`${where}: bloque no admitido (${b.type})`);
+          errors.push(`${where}: unsupported block (${b.type})`);
       }
     }
     return out;
@@ -129,12 +129,12 @@ export function readProgram(ws: WorkspaceJson | null | undefined): Program {
     if (b.type !== BLOCK.onRead && b.type !== BLOCK.onStep) continue; // loose blocks: not run
     const object = String(b.fields?.[b.type === BLOCK.onRead ? 'SIGN' : 'ZONE'] ?? '');
     if (!object || object === 'NONE') {
-      errors.push(`un evento sin ${b.type === BLOCK.onRead ? 'cartel' : 'zona'} elegido`);
+      errors.push(`an event with no ${b.type === BLOCK.onRead ? 'sign' : 'zone'} chosen`);
       continue;
     }
     const event = b.type === BLOCK.onRead ? 'read' : 'step';
-    if (handlers.some((h) => h.event === event && h.object === object)) errors.push('dos eventos para el mismo objeto: solo cuenta el primero');
-    else handlers.push({ event, object, body: stmts(input(b, 'DO'), event === 'read' ? 'Al leer' : 'Al pisar') });
+    if (handlers.some((h) => h.event === event && h.object === object)) errors.push('two events for the same object: only the first one counts');
+    else handlers.push({ event, object, body: stmts(input(b, 'DO'), event === 'read' ? 'When reading' : 'When stepping') });
   }
   return { handlers, variables, errors };
 }

@@ -40,7 +40,7 @@ function LogicScreen() {
       try {
         Blockly.serialization.workspaces.load(doc.logic as object, w);
       } catch (e) {
-        useUi.getState().notify(`No se pudo cargar la lógica: ${(e as Error).message}`, true);
+        useUi.getState().notify(`Could not load the logic: ${(e as Error).message}`, true);
       }
     }
     setErrors(readProgram(doc.logic as WorkspaceJson).errors);
@@ -102,17 +102,17 @@ function LogicScreen() {
   return (
     <div className="logic-screen">
       <div className="logic-head">
-        <b>Lógica del mapa</b>
+        <b>Map logic</b>
         <span className="kv">
-          Arrastra bloques desde la izquierda. Solo se ejecuta lo que cuelga de un evento («Al leer el cartel», «Al pisar la zona»);
-          los bloques sueltos no. Rueda: zoom · arrastra el fondo para moverte.
+          Drag blocks from the left. Only what hangs from an event ("When reading the sign", "When stepping into the zone") runs;
+          loose blocks don't. Wheel: zoom · drag the background to move around.
         </span>
         <div className="spacer" />
-        <button onClick={() => ws.current?.cleanUp()} title="Coloca los bloques en columna, sin solaparse">
-          Ordenar
+        <button onClick={() => ws.current?.cleanUp()} title="Lays the blocks out in a column, without overlapping">
+          Tidy up
         </button>
         <button className="primary" onClick={close}>
-          Volver al mapa (Esc)
+          Back to the map (Esc)
         </button>
       </div>
       <div className="logic-host" ref={host} />

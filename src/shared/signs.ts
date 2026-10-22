@@ -177,6 +177,6 @@ export function renameUnused(tbl: Uint8Array, names: string[]): { data: Uint8Arr
   }
   let k = 0;
   const renamed = entries.map((n) => (n === 'NOUSED' && k < names.length ? names[k++] : n));
-  if (k < names.length) throw new Error(`no hay sitio para más de ${k} variables`);
+  if (k < names.length) throw new Error(`there is no room for more than ${k} variables`);
   return { data: labelTable(renamed).subarray(0), free: entries.filter((n) => n === 'NOUSED').length };
 }

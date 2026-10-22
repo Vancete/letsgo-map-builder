@@ -1,0 +1,1385 @@
+{
+ "format": "letsgo-map",
+ "version": 1,
+ "name": "Sign and Button",
+ "author": "Ivan",
+ "description": "",
+ "grid": {
+  "cellSize": 100,
+  "width": 32,
+  "depth": 32,
+  "originX": -1600,
+  "originZ": -1600
+ },
+ "objects": [
+  {
+   "id": "omvi3cevu17qnw",
+   "name": "Arrival point",
+   "asset": "lg.spawn",
+   "parent": null,
+   "position": [-1150, 0, 800],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevu2kgmx",
+   "name": "Exit (teleport pad)",
+   "asset": "lg.exit",
+   "parent": null,
+   "position": [-650, 0, 850],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevv3ak7s",
+   "name": "bldg_pc",
+   "asset": "zp.area03.town003_00.bldg_pc.0",
+   "parent": null,
+   "position": [-650, 0, -650],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevv4rcdr",
+   "name": "bldg_shop",
+   "asset": "zp.area03.town003_00.bldg_shop.0",
+   "parent": null,
+   "position": [650, 0, -650],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevv57no9",
+   "name": "masaratown_house_house1",
+   "asset": "zp.area02.town001_00.masaratown_house_house1.0",
+   "parent": null,
+   "position": [-750, 0, 500],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevv6n22v",
+   "name": "bldg_gym",
+   "asset": "zp.area03.town003_00.bldg_gym.0",
+   "parent": null,
+   "position": [750, 0, 550],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevv7eiwg",
+   "name": "benchi_1",
+   "asset": "zp.area03.town003_00.benchi_1.0",
+   "parent": null,
+   "position": [-150, 0, -250],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevv8yig8",
+   "name": "lamp01",
+   "asset": "zp.area03.town003_00.lamp01.0",
+   "parent": null,
+   "position": [250, 0, -250],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevv9g5ba",
+   "name": "signboard01",
+   "asset": "zp.area02.town001_00.signboard01.0",
+   "parent": null,
+   "position": [250, 0, 150],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevvab7vp",
+   "name": "tree001",
+   "asset": "zp.area01.road023_00.tree001.0",
+   "parent": null,
+   "position": [-1450, 0, -1450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevvb9rm1",
+   "name": "tree002",
+   "asset": "zp.area01.road023_00.tree002.0",
+   "parent": null,
+   "position": [-1050, 0, -1450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevvcrqgn",
+   "name": "tree001",
+   "asset": "zp.area01.road023_00.tree001.0",
+   "parent": null,
+   "position": [-650, 0, -1450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevvdduih",
+   "name": "tree002",
+   "asset": "zp.area01.road023_00.tree002.0",
+   "parent": null,
+   "position": [-250, 0, -1450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevve0ufj",
+   "name": "tree001",
+   "asset": "zp.area01.road023_00.tree001.0",
+   "parent": null,
+   "position": [150, 0, -1450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevvff46c",
+   "name": "tree002",
+   "asset": "zp.area01.road023_00.tree002.0",
+   "parent": null,
+   "position": [550, 0, -1450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevvgrvb6",
+   "name": "tree001",
+   "asset": "zp.area01.road023_00.tree001.0",
+   "parent": null,
+   "position": [950, 0, -1450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevvhtp8t",
+   "name": "tree002",
+   "asset": "zp.area01.road023_00.tree002.0",
+   "parent": null,
+   "position": [1350, 0, -1450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevwijsyr",
+   "name": "flowers04",
+   "asset": "bm.flowers04",
+   "parent": null,
+   "position": [-250, 0, -50],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevwj3kwg",
+   "name": "flowers04",
+   "asset": "bm.flowers04",
+   "parent": null,
+   "position": [-150, 0, -50],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevwkuol2",
+   "name": "flowers04",
+   "asset": "bm.flowers04",
+   "parent": null,
+   "position": [-50, 0, -50],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevwlct7r",
+   "name": "flowers04",
+   "asset": "bm.flowers04",
+   "parent": null,
+   "position": [50, 0, -50],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevwmfok8",
+   "name": "flowers04",
+   "asset": "bm.flowers04",
+   "parent": null,
+   "position": [150, 0, -50],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevwnq8ok",
+   "name": "flowers04",
+   "asset": "bm.flowers04",
+   "parent": null,
+   "position": [250, 0, -50],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "omvi3cevwu45az",
+   "name": "kairiki_rock",
+   "asset": "bm.kairiki_rock",
+   "parent": null,
+   "position": [1250, 0, 0],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "ograss1",
+   "name": "Grass zone",
+   "asset": "lg.grass",
+   "parent": null,
+   "position": [-1150, 0, 100],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false,
+   "grass": {
+    "w": 4,
+    "d": 3,
+    "wild": {
+     "minLevel": 5,
+     "maxLevel": 7,
+     "slots": [
+      {
+       "species": 25,
+       "rate": 50
+      },
+      {
+       "species": 1,
+       "rate": 50
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "ograss2",
+   "name": "Grass zone 2",
+   "asset": "lg.grass",
+   "parent": null,
+   "position": [-250, 0, 1050],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false,
+   "grass": {
+    "w": 4,
+    "d": 3,
+    "wild": {
+     "minLevel": 5,
+     "maxLevel": 8,
+     "slots": [
+      {
+       "species": 16,
+       "rate": 100
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "otest0",
+   "name": "tree001",
+   "asset": "zp.area01.road023_00.tree001.0",
+   "parent": null,
+   "position": [-1550, 0, 450],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "otest1",
+   "name": "tree001",
+   "asset": "zp.area01.road023_00.tree001.0",
+   "parent": null,
+   "position": [-1550, 0, 1150],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile0",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-1400, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile1",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-1400, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile2",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-1400, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile3",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-1400, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile4",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-1400, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile5",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-1400, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile6",
+   "name": "roadtile01_area02 4x4",
+   "asset": "tile.roadtile01_area02.4",
+   "parent": null,
+   "position": [-1400, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile7",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-1400, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile8",
+   "name": "soil01_com 4x4",
+   "asset": "tile.soil01_com.4",
+   "parent": null,
+   "position": [-1000, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile9",
+   "name": "soil01_com 4x4",
+   "asset": "tile.soil01_com.4",
+   "parent": null,
+   "position": [-1000, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile10",
+   "name": "soil01_com 4x4",
+   "asset": "tile.soil01_com.4",
+   "parent": null,
+   "position": [-1000, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile11",
+   "name": "soil01_com 4x4",
+   "asset": "tile.soil01_com.4",
+   "parent": null,
+   "position": [-1000, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile12",
+   "name": "soil01_com 4x4",
+   "asset": "tile.soil01_com.4",
+   "parent": null,
+   "position": [-1000, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile13",
+   "name": "soil01_com 4x4",
+   "asset": "tile.soil01_com.4",
+   "parent": null,
+   "position": [-1000, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile14",
+   "name": "soil01_com 4x4",
+   "asset": "tile.soil01_com.4",
+   "parent": null,
+   "position": [-1000, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile15",
+   "name": "soil01_com 4x4",
+   "asset": "tile.soil01_com.4",
+   "parent": null,
+   "position": [-1000, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile16",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-600, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile17",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-600, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile18",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-600, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile19",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-600, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile20",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-600, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile21",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-600, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile22",
+   "name": "roadtile01_area02 4x4",
+   "asset": "tile.roadtile01_area02.4",
+   "parent": null,
+   "position": [-600, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile23",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-600, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile24",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-200, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile25",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-200, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile26",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-200, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile27",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-200, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile28",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-200, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile29",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-200, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile30",
+   "name": "roadtile01_area02 4x4",
+   "asset": "tile.roadtile01_area02.4",
+   "parent": null,
+   "position": [-200, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile31",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [-200, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile32",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [200, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile33",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [200, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile34",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [200, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile35",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [200, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile36",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [200, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile37",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [200, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile38",
+   "name": "roadtile01_area02 4x4",
+   "asset": "tile.roadtile01_area02.4",
+   "parent": null,
+   "position": [200, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile39",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [200, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile40",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [600, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile41",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [600, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile42",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [600, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile43",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [600, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile44",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [600, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile45",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [600, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile46",
+   "name": "roadtile01_area02 4x4",
+   "asset": "tile.roadtile01_area02.4",
+   "parent": null,
+   "position": [600, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile47",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [600, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile48",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1000, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile49",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1000, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile50",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1000, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile51",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1000, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile52",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1000, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile53",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1000, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile54",
+   "name": "roadtile01_area02 4x4",
+   "asset": "tile.roadtile01_area02.4",
+   "parent": null,
+   "position": [1000, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile55",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1000, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile56",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1400, 0, -1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile57",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1400, 0, -1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile58",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1400, 0, -600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile59",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1400, 0, -200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile60",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1400, 0, 200],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile61",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1400, 0, 600],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile62",
+   "name": "roadtile01_area02 4x4",
+   "asset": "tile.roadtile01_area02.4",
+   "parent": null,
+   "position": [1400, 0, 1000],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "tile63",
+   "name": "grass01_com 4x4",
+   "asset": "tile.grass01_com.4",
+   "parent": null,
+   "position": [1400, 0, 1400],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false
+  },
+  {
+   "id": "sign1",
+   "name": "Sign",
+   "asset": "lg.sign",
+   "parent": null,
+   "position": [-1150, 0, 700],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false,
+   "sign": {
+    "text": "Welcome to Test Town!\nA map made with Let's Go Map Builder.\n\nTo the east there is a ledge: jump down it\nand climb back up the stairs."
+   }
+  },
+  {
+   "id": "trig1",
+   "name": "Button",
+   "asset": "lg.trigger",
+   "parent": null,
+   "position": [-1150, 0, 1050],
+   "rotation": [0, 0, 0],
+   "scale": [1, 1, 1],
+   "visible": true,
+   "locked": false,
+   "trigger": {
+    "w": 1,
+    "d": 1
+   }
+  }
+ ],
+ "assets": {
+  "lg.spawn": {
+   "name": "Arrival point",
+   "category": "marker",
+   "source": {
+    "kind": "marker",
+    "marker": "spawn"
+   }
+  },
+  "lg.exit": {
+   "name": "Exit (teleport pad)",
+   "category": "marker",
+   "source": {
+    "kind": "marker",
+    "marker": "exit"
+   }
+  },
+  "zp.area03.town003_00.bldg_pc.0": {
+   "name": "bldg_pc",
+   "category": "pc",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area03/town003_00.gfpak",
+    "fileIndex": 0,
+    "family": "bldg_pc",
+    "pivot": [1649.9999389648438, 100, 2592.0142822265625],
+    "instance": 0
+   }
+  },
+  "zp.area03.town003_00.bldg_shop.0": {
+   "name": "bldg_shop",
+   "category": "shop",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area03/town003_00.gfpak",
+    "fileIndex": 0,
+    "family": "bldg_shop",
+    "pivot": [2700, 100, 1852.4749755859375],
+    "instance": 0
+   }
+  },
+  "zp.area02.town001_00.masaratown_house_house1.0": {
+   "name": "masaratown_house_house1",
+   "category": "building",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area02/town001_00.gfpak",
+    "fileIndex": 0,
+    "family": "masaratown_house_house1",
+    "pivot": [1649.17626953125, 0, 476.7567596435547],
+    "instance": 0
+   }
+  },
+  "zp.area03.town003_00.bldg_gym.0": {
+   "name": "bldg_gym",
+   "category": "gym",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area03/town003_00.gfpak",
+    "fileIndex": 0,
+    "family": "bldg_gym",
+    "pivot": [1450.0000610351562, 100, 1597.7597045898438],
+    "instance": 0
+   }
+  },
+  "zp.area03.town003_00.benchi_1.0": {
+   "name": "benchi_1",
+   "category": "street",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area03/town003_00.gfpak",
+    "fileIndex": 0,
+    "family": "benchi_1",
+    "pivot": [3197.3525390625, 99.69190216064453, 1566.159423828125],
+    "instance": 0
+   }
+  },
+  "zp.area03.town003_00.lamp01.0": {
+   "name": "lamp01",
+   "category": "street",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area03/town003_00.gfpak",
+    "fileIndex": 0,
+    "family": "lamp01",
+    "pivot": [350.2520751953125, 149.96820068359375, 255.39092254638672],
+    "instance": 0
+   }
+  },
+  "zp.area02.town001_00.signboard01.0": {
+   "name": "signboard01",
+   "category": "street",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area02/town001_00.gfpak",
+    "fileIndex": 0,
+    "family": "signboard01",
+    "pivot": [2599.994384765625, 0.00020875253539998084, 1664.3204345703125],
+    "instance": 0
+   }
+  },
+  "zp.area01.road023_00.tree001.0": {
+   "name": "tree001",
+   "category": "tree",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area01/road023_00.gfpak",
+    "fileIndex": 0,
+    "family": "tree001",
+    "pivot": [2407.506103515625, 49.477447509765625, 13715.8125],
+    "instance": 0
+   }
+  },
+  "zp.area01.road023_00.tree002.0": {
+   "name": "tree002",
+   "category": "tree",
+   "source": {
+    "kind": "zonePiece",
+    "pak": "bin/archive/field/area01/road023_00.gfpak",
+    "fileIndex": 0,
+    "family": "tree002",
+    "pivot": [-604.8447265625, 49.477447509765625, 3525.4210205078125],
+    "instance": 0
+   }
+  },
+  "bm.flowers04": {
+   "name": "flowers04",
+   "category": "flower",
+   "source": {
+    "kind": "model",
+    "pak": "bin/archive/field/buildmodel.gfpak",
+    "path": "bin/field/model/buildmodel/flowers04.gfbmdl",
+    "fileIndex": 548
+   }
+  },
+  "bm.kairiki_rock": {
+   "name": "kairiki_rock",
+   "category": "rock",
+   "source": {
+    "kind": "model",
+    "pak": "bin/archive/field/buildmodel.gfpak",
+    "path": "bin/field/model/buildmodel/kairiki_rock.gfbmdl",
+    "fileIndex": 567
+   }
+  },
+  "lg.grass": {
+   "name": "Tall-grass zone (wild Pokémon)",
+   "category": "grass",
+   "source": {
+    "kind": "marker",
+    "marker": "grass"
+   }
+  },
+  "tile.grass01_com.4": {
+   "name": "grass01_com 4x4",
+   "category": "ground",
+   "source": {
+    "kind": "tile",
+    "texture": "grass01_com",
+    "cells": 4
+   }
+  },
+  "tile.roadtile01_area02.4": {
+   "name": "roadtile01_area02 4x4",
+   "category": "ground",
+   "source": {
+    "kind": "tile",
+    "texture": "roadtile01_area02",
+    "cells": 4
+   }
+  },
+  "tile.soil01_com.4": {
+   "name": "soil01_com 4x4",
+   "category": "ground",
+   "source": {
+    "kind": "tile",
+    "texture": "soil01_com",
+    "cells": 4
+   }
+  }
+ },
+ "logic": {
+  "variables": [
+   {
+    "id": "v1",
+    "name": "pressed"
+   }
+  ],
+  "blocks": {
+   "languageVersion": 0,
+   "blocks": [
+    {
+     "type": "lg_on_read",
+     "x": 20,
+     "y": 20,
+     "fields": {
+      "SIGN": "sign1"
+     },
+     "inputs": {
+      "DO": {
+       "block": {
+        "type": "controls_if",
+        "extraState": {
+         "hasElse": true
+        },
+        "inputs": {
+         "IF0": {
+          "block": {
+           "type": "logic_compare",
+           "fields": {
+            "OP": "EQ"
+           },
+           "inputs": {
+            "A": {
+             "block": {
+              "type": "variables_get",
+              "fields": {
+               "VAR": {
+                "id": "v1"
+               }
+              }
+             }
+            },
+            "B": {
+             "block": {
+              "type": "logic_boolean",
+              "fields": {
+               "BOOL": "TRUE"
+              }
+             }
+            }
+           }
+          }
+         },
+         "DO0": {
+          "block": {
+           "type": "lg_show_text",
+           "fields": {
+            "TEXT": "You stepped on the button!\nNow this sign says something else."
+           }
+          }
+         },
+         "ELSE": {
+          "block": {
+           "type": "lg_show_text",
+           "fields": {
+            "TEXT": "Find the button to the south\nand read this sign again."
+           }
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    {
+     "type": "lg_on_step",
+     "x": 20,
+     "y": 300,
+     "fields": {
+      "ZONE": "trig1"
+     },
+     "inputs": {
+      "DO": {
+       "block": {
+        "type": "variables_set",
+        "fields": {
+         "VAR": {
+          "id": "v1"
+         }
+        },
+        "inputs": {
+         "VALUE": {
+          "block": {
+           "type": "logic_boolean",
+           "fields": {
+            "BOOL": "TRUE"
+           }
+          }
+         }
+        },
+        "next": {
+         "block": {
+          "type": "lg_show_text",
+          "fields": {
+           "TEXT": "Click! You stepped on the button."
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

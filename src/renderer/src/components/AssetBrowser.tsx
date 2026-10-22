@@ -30,7 +30,7 @@ const Card = memo(function Card({ a, thumb, armed, onArm }: { a: AssetEntry; thu
     <div
       className={`card ${armed ? 'armed' : ''}`}
       draggable
-      title={`${a.name}\n${CATEGORY_LABELS[a.category]}${a.zone ? ` · ${a.zone}` : ''}\n${Math.round(a.bounds[3] - a.bounds[0])} × ${Math.round(a.bounds[5] - a.bounds[2])} u, alto ${Math.round(a.bounds[4] - a.bounds[1])}\nArrastra a la vista, doble clic para añadir, clic para colocar varios`}
+      title={`${a.name}\n${CATEGORY_LABELS[a.category]}${a.zone ? ` · ${a.zone}` : ''}\n${Math.round(a.bounds[3] - a.bounds[0])} × ${Math.round(a.bounds[5] - a.bounds[2])} u, ${Math.round(a.bounds[4] - a.bounds[1])} high\nDrag into the view, double-click to add, click to place several`}
       onDragStart={(e) => {
         e.dataTransfer.setData('application/x-lgasset', a.id);
         e.dataTransfer.effectAllowed = 'copy';
@@ -95,10 +95,10 @@ export function AssetBrowser() {
     <div className="browser">
       <div className="cats">
         <div className={`cat ${cat === 'all' ? 'on' : ''}`} onClick={() => pickCat('all')}>
-          Todos <small>{assets.length}</small>
+          All <small>{assets.length}</small>
         </div>
         <div className={`cat ${cat === 'used' ? 'on' : ''}`} onClick={() => pickCat('used')}>
-          En el mapa <small>{used.size}</small>
+          In the map <small>{used.size}</small>
         </div>
         {CATEGORY_ORDER.filter((c) => counts.get(c)).map((c) => (
           <div key={c} className={`cat ${cat === c ? 'on' : ''}`} onClick={() => pickCat(c)}>
@@ -108,10 +108,10 @@ export function AssetBrowser() {
       </div>
       <div className="assets-wrap">
         <div className="assets-tools">
-          <input type="search" placeholder="Buscar objetos (nombre, zona...)" value={query} onChange={(e) => setQuery(e.target.value)} />
-          <select value={zone} onChange={(e) => setZone(e.target.value)} title="Filtrar por zona de origen">
-            <option value="">Todas las zonas</option>
-            <option value="-">Objetos sueltos del juego</option>
+          <input type="search" placeholder="Search objects (name, zone...)" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <select value={zone} onChange={(e) => setZone(e.target.value)} title="Filter by source zone">
+            <option value="">All zones</option>
+            <option value="-">The game's standalone objects</option>
             {zones.map((z) => (
               <option key={z} value={z}>
                 {z}
@@ -119,7 +119,7 @@ export function AssetBrowser() {
             ))}
           </select>
           <span className="kv">
-            {list.length} objetos{list.length > shown.length ? ` (mostrando ${shown.length})` : ''}
+            {list.length} objects{list.length > shown.length ? ` (showing ${shown.length})` : ''}
           </span>
           <span className="grow" />
           {thumbJob && (
@@ -137,7 +137,7 @@ export function AssetBrowser() {
             min={72}
             max={180}
             value={size}
-            title="Tamaño de las miniaturas"
+            title="Thumbnail size"
             onChange={(e) => {
               setSize(Number(e.target.value));
               writePref('browser.size', Number(e.target.value));
@@ -148,7 +148,7 @@ export function AssetBrowser() {
           {shown.map((a) => (
             <Card key={a.id} a={a} thumb={thumbs.has(a.id) ? thumbUrl(a.id, thumbVersion) : null} armed={armed === a.id} onArm={onArm} />
           ))}
-          {!list.length && <div className="empty">Nada por aquí.</div>}
+          {!list.length && <div className="empty">Nothing here.</div>}
         </div>
       </div>
     </div>

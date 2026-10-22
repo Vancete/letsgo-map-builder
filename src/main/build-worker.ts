@@ -19,7 +19,7 @@ interface Job {
 const job = workerData as Job;
 try {
   const fs = openGameFS(job.gamePath);
-  if (!fs) throw new Error('No se encuentran los archivos del juego');
+  if (!fs) throw new Error("The game's files were not found");
   const catalog = JSON.parse(readFileSync(join(job.cacheDir, 'catalog.json'), 'utf8')) as Catalog;
   const result = buildMapMod({
     fs,

@@ -75,7 +75,7 @@ export function guessModsPath(gamePath: string): string {
 
 export function readMap(path: string): MapDocument {
   const doc = JSON.parse(readFileSync(path, 'utf8')) as MapDocument;
-  if (doc.format !== 'letsgo-map') throw new Error('No es un archivo de mapa de Let\'s Go Map Builder');
+  if (doc.format !== 'letsgo-map') throw new Error('Not a Let\'s Go Map Builder map file');
   return doc;
 }
 
@@ -86,7 +86,7 @@ export function writeMap(path: string, doc: MapDocument) {
 }
 
 export function safeName(s: string): string {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '') || 'mapa';
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').replace(/^_+|_+$/g, '') || 'map';
 }
 
 // The mod folder Let's Go Recomp lists (it has a romfs/): the game files the map builds into go under romfs/ (written by
@@ -119,18 +119,18 @@ export function exportMod(
   writeFileSync(join(root, 'mapmod.json'), JSON.stringify(manifest, null, 2));
   writeFileSync(
     join(root, 'README.txt'),
-    `${doc.name}${doc.author ? ` - ${doc.author}` : ''}
-
-${doc.description}
-
+    `${doc.name}${doc.author ? ` - ${doc.author}` : ''}
+
+${doc.description}
+
 ` +
-      `Mapa creado con Let's Go Map Builder, para Let's Go Recomp. Activa este mod en la pestaña Mods del lanzador.
+      `A map made with Let's Go Map Builder, for Let's Go Recomp. Enable this mod in the launcher's Mods tab.
 ` +
-      `En Pueblo Paleta aparece un teletransportador (en el camino entre las casas del norte) que lleva al mapa;
+      `A teleport pad appears in Pallet Town (on the path between the northern houses) that leads to the map;
 ` +
-      `en el mapa, la baldosa de salida devuelve a Pueblo Paleta.
+      `in the map, the exit pad takes you back to Pallet Town.
 ` +
-      `Reemplaza placement.gfpak y script_amx.gfpak: no lo combines con otros mods que cambien esos archivos.
+      `It replaces placement.gfpak and script_amx.gfpak: don't combine it with other mods that change those files.
 `,
   );
   return root;
